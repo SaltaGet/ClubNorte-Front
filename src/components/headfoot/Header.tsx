@@ -49,52 +49,51 @@ const Header = () => {
 
   return (
     <header className="bg-slate-600 backdrop-blur-md border-b border-white/20 shadow-2xl">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex justify-between items-center gap-2 sm:gap-4">
           {/* Logo/Título con info del usuario */}
-          <div className="flex items-center gap-3">
-            <User className="text-slate-400" size={24} />
-            <div>
-              <h1 className="text-2xl font-bold text-white">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
+            <User className="text-slate-400 flex-shrink-0" size={20} />
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white truncate">
                 Panel de Control
               </h1>
               {user && (
-                <p className="text-sm text-slate-300">
+                <p className="text-xs sm:text-sm text-slate-300 truncate">
                   {getUserFullName()} • {user.role?.name}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Botones centrales */}
-          <div className="flex items-center gap-3">
-            {/* Botón de Inicio - Solo si NO estamos en root */}
+          {/* Botones centrales y menú */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Botón de Inicio - Ocultar texto en móvil */}
             {location.pathname !== "/" && (
               <Button
                 onClick={handleHome}
                 variant="outline"
+                size="sm"
                 className="bg-slate-700/80 border-slate-500 hover:bg-slate-600 hover:border-slate-400 text-white shadow-lg transition-all duration-200"
               >
-                <Home className="mr-2" size={18} />
-                Inicio
+                <Home className="sm:mr-2" size={18} />
+                <span className="hidden sm:inline">Inicio</span>
               </Button>
             )}
 
-            {/* Botón de Informes - Solo visible para admins */}
+            {/* Botón de Informes - Solo visible para admins, ocultar texto en móvil */}
             {isAdmin && (
               <Button
                 onClick={handleReports}
                 variant="outline"
+                size="sm"
                 className="bg-gradient-to-r from-blue-600 to-blue-700 border-blue-500 hover:from-blue-700 hover:to-blue-800 hover:border-blue-400 text-white shadow-lg transition-all duration-200"
               >
-                <FileText className="mr-2" size={18} />
-                Informes
+                <FileText className="sm:mr-2" size={18} />
+                <span className="hidden sm:inline">Informes</span>
               </Button>
             )}
-          </div>
 
-          {/* Menú de Usuario y Notificaciones */}
-          <div className="flex items-center gap-3">
             {/* Componente de Notificaciones */}
             <NotificationDropdown />
 

@@ -53,51 +53,53 @@ const Admin = () => {
       <main className="max-w-7xl mx-auto px-6 py-8">
         
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-8 bg-slate-800/50 border border-slate-700">
-            <TabsTrigger 
-              value="dashboard"
-              className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
-            >
-              <Building2 className="w-4 h-4 mr-2" />
-              Dashboard
-            </TabsTrigger>
-            {canAccessAdmin && (
+          <div className="mb-8 overflow-x-auto scrollbar-hide">
+            <TabsList className="bg-slate-800/50 border border-slate-700 inline-flex w-auto min-w-full">
               <TabsTrigger 
-                value="productos"
-                className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
+                value="dashboard"
+                className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white whitespace-nowrap flex-shrink-0"
               >
-                <Package className="w-4 h-4 mr-2" />
-                Productos
+                <Building2 className="w-4 h-4 md:mr-2" />
+                <span className="hidden md:inline">Dashboard</span>
               </TabsTrigger>
-            )}
-            {canAccessAdmin && (
-              <TabsTrigger 
-                value="categorias"
-                className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
-              >
-                <FolderTree className="w-4 h-4 mr-2" />
-                Categorías
-              </TabsTrigger>
-            )}
-            {canAccessAdmin && (
-              <TabsTrigger 
-                value="usuarios"
-                className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Usuarios
-              </TabsTrigger>
-            )}
-            {canAccessStock && (
-              <TabsTrigger 
-                value="stock"
-                className="text-slate-400 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
-              >
-                <Box className="w-4 h-4 mr-2" />
-                Stock
-              </TabsTrigger>
-            )}
-          </TabsList>
+              {canAccessAdmin && (
+                <TabsTrigger 
+                  value="productos"
+                  className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white whitespace-nowrap flex-shrink-0"
+                >
+                  <Package className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Productos</span>
+                </TabsTrigger>
+              )}
+              {canAccessAdmin && (
+                <TabsTrigger 
+                  value="categorias"
+                  className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white whitespace-nowrap flex-shrink-0"
+                >
+                  <FolderTree className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Categorías</span>
+                </TabsTrigger>
+              )}
+              {canAccessAdmin && (
+                <TabsTrigger 
+                  value="usuarios"
+                  className="text-slate-400 data-[state=active]:bg-indigo-600 data-[state=active]:text-white whitespace-nowrap flex-shrink-0"
+                >
+                  <Users className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Usuarios</span>
+                </TabsTrigger>
+              )}
+              {canAccessStock && (
+                <TabsTrigger 
+                  value="stock"
+                  className="text-slate-400 data-[state=active]:bg-emerald-500 data-[state=active]:text-white whitespace-nowrap flex-shrink-0"
+                >
+                  <Box className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Stock</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard" className="space-y-8">
             {/* HEADER - Bienvenida */}
