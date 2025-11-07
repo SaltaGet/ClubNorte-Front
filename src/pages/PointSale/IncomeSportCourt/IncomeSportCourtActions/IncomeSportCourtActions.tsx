@@ -16,16 +16,19 @@ const IncomeSportCourtActions: React.FC<IncomeSportCourtActionsProps> = ({ id })
   const { isUserAdmin, getUserRole } = useUserStore()
   const { incomeSportCourt } = useGetIncomeSportCourtById(id)
 
-  // Chequeo de permisos - solo admins
+  // Chequeo de permisos
   const isAdmin = isUserAdmin() || getUserRole() === "admin"
+  const isVendedor = getUserRole() === "vendedor"
+  const canConfirmPayment = isAdmin || isVendedor
 
   // Verificar si el pago está completo
   const isPaymentComplete = incomeSportCourt?.date_rest_pay !== null
 
-  // Siempre mostrar los 3 tabs si es admin
+  // Determinar cantidad de tabs según permisos
   const getGridCols = () => {
-    if (!isAdmin) return "grid-cols-1"
-    return "grid-cols-3" // Siempre 3 tabs para admin
+    if (isAdmin) return "grid-cols-3" // Admin ve los 3 tabs
+    if (isVendedor) return "grid-cols-2" // Vendedor ve detalle y confirmar pago
+    return "grid-cols-1" // Usuario normal solo ve detalle
   }
 
   return (
@@ -43,7 +46,7 @@ const IncomeSportCourtActions: React.FC<IncomeSportCourtActionsProps> = ({ id })
               Detalle
             </TabsTrigger>
 
-            {isAdmin && (
+            {canConfirmPayment && (
               <TabsTrigger
                 value="confirmar-pago"
                 className="text-slate-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl transition-colors flex items-center gap-2"
@@ -68,7 +71,7 @@ const IncomeSportCourtActions: React.FC<IncomeSportCourtActionsProps> = ({ id })
             <IncomeSportCourtDetailCard id={id} />
           </TabsContent>
 
-          {isAdmin && (
+          {canConfirmPayment && (
             <TabsContent value="confirmar-pago">
               {isPaymentComplete ? (
                 <SuccessMessage
