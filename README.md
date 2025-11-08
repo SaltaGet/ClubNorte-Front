@@ -220,3 +220,5 @@ shadow-lg hover:shadow-indigo-500/30 transition-all
 7. Siempre incluir estados hover y disabled
 8. Grid responsive: `md:grid-cols-2`
 9. Fuente: **Inter** (default Tailwind)
+
+PSyshg
