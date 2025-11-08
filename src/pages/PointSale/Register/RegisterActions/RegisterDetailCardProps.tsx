@@ -4,7 +4,6 @@ import { useGetRegisterById } from '@/hooks/admin/Register/useGetRegisterById';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NumericFormat } from 'react-number-format';
-import { format } from 'date-fns';
 
 interface RegisterDetailCardProps {
   id: number;
@@ -23,20 +22,34 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
     }).format(new Date(dateString));
   };
 
-  // Calcular totales de canchas deportivas (solo pagos de la fecha del registro)
+  // Calcular totales de ingresos (productos)
+  const calculateIncomeTotals = () => {
+    if (!register?.income) return { cash: 0, others: 0, total: 0 };
+    
+    let cash = 0;
+    let others = 0;
+    
+    register.income.forEach(income => {
+      if (income.payment_method === 'efectivo') {
+        cash += income.total;
+      } else {
+        others += income.total;
+      }
+    });
+    
+    return { cash, others, total: cash + others };
+  };
+
+  // Calcular totales de canchas deportivas (solo pagos que pertenecen a este registro)
   const calculateSportsCourtTotals = () => {
     if (!register?.income_sports_courts) return { cash: 0, others: 0, total: 0 };
-    
-    // Obtener solo la fecha (sin hora) del registro usando date-fns
-    const registerDate = format(new Date(register.hour_open), 'yyyy-MM-dd');
     
     let cash = 0;
     let others = 0;
     
     register.income_sports_courts.forEach(income => {
-      // Verificar si el pago parcial se hizo en la fecha del registro
-      const partialDate = format(new Date(income.date_partial_pay), 'yyyy-MM-dd');
-      if (partialDate === registerDate) {
+      // Verificar si el pago parcial pertenece a ESTE registro
+      if (income.partial_register_id === id) {
         if (income.partial_payment_method === 'efectivo') {
           cash += income.partial_pay;
         } else {
@@ -44,16 +57,31 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
         }
       }
       
-      // Verificar si el pago restante existe y se hizo en la fecha del registro
-      if (income.rest_pay && income.date_rest_pay) {
-        const restDate = format(new Date(income.date_rest_pay), 'yyyy-MM-dd');
-        if (restDate === registerDate) {
-          if (income.rest_payment_method === 'efectivo') {
-            cash += income.rest_pay;
-          } else {
-            others += income.rest_pay;
-          }
+      // Verificar si el pago restante pertenece a ESTE registro
+      if (income.rest_pay && income.rest_register_id === id) {
+        if (income.rest_payment_method === 'efectivo') {
+          cash += income.rest_pay;
+        } else {
+          others += income.rest_pay;
         }
+      }
+    });
+    
+    return { cash, others, total: cash + others };
+  };
+
+  // Calcular totales de egresos
+  const calculateExpenseTotals = () => {
+    if (!register?.expenses) return { cash: 0, others: 0, total: 0 };
+    
+    let cash = 0;
+    let others = 0;
+    
+    register.expenses.forEach(expense => {
+      if (expense.payment_method === 'efectivo') {
+        cash += expense.total;
+      } else {
+        others += expense.total;
       }
     });
     
@@ -99,14 +127,19 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
     );
   }
 
+  // Calcular todos los totales
+  const incomeTotals = calculateIncomeTotals();
   const sportsCourtTotals = calculateSportsCourtTotals();
-  const totalIncome = register.total_income_cash + register.total_income_others;
-  const totalExpense = register.total_expense_cash + register.total_expense_others;
-  const netBalance = totalIncome - totalExpense + sportsCourtTotals.total;
+  const expenseTotals = calculateExpenseTotals();
+
+  // Balance total (ingresos + canchas - egresos)
+  const totalIncome = incomeTotals.total + sportsCourtTotals.total;
+  const totalExpense = expenseTotals.total;
+  const netBalance = totalIncome - totalExpense;
   const expectedClose = register.open_amount + netBalance;
   
   // Balance en efectivo (solo caja física)
-  const cashBalance = register.total_income_cash + sportsCourtTotals.cash - register.total_expense_cash;
+  const cashBalance = incomeTotals.cash + sportsCourtTotals.cash - expenseTotals.cash;
   const expectedCashClose = register.open_amount + cashBalance;
 
   return (
@@ -152,25 +185,25 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
 
         <Separator className="bg-white/10" />
 
-        {/* Ingresos */}
+        {/* Ingresos (Productos) */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-emerald-400">
             <TrendingUp className="w-4 h-4" />
-            <h4 className="font-medium text-sm uppercase tracking-wide">Ingresos</h4>
+            <h4 className="font-medium text-sm uppercase tracking-wide">Ingresos (Productos)</h4>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex justify-between bg-slate-800/30 rounded px-3 py-2">
               <span className="text-slate-300">Efectivo:</span>
-              <span className="text-emerald-400 font-medium"><CurrencyDisplay value={register.total_income_cash} /></span>
+              <span className="text-emerald-400 font-medium"><CurrencyDisplay value={incomeTotals.cash} /></span>
             </div>
             <div className="flex justify-between bg-slate-800/30 rounded px-3 py-2">
               <span className="text-slate-300">Otros:</span>
-              <span className="text-emerald-400 font-medium"><CurrencyDisplay value={register.total_income_others} /></span>
+              <span className="text-emerald-400 font-medium"><CurrencyDisplay value={incomeTotals.others} /></span>
             </div>
           </div>
           <div className="flex justify-between px-3 py-2 bg-emerald-500/10 rounded border border-emerald-500/20">
             <span className="text-slate-200 font-medium">Total:</span>
-            <span className="text-emerald-400 font-semibold"><CurrencyDisplay value={totalIncome} /></span>
+            <span className="text-emerald-400 font-semibold"><CurrencyDisplay value={incomeTotals.total} /></span>
           </div>
         </div>
 
@@ -207,16 +240,16 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="flex justify-between bg-slate-800/30 rounded px-3 py-2">
               <span className="text-slate-300">Efectivo:</span>
-              <span className="text-red-400 font-medium"><CurrencyDisplay value={register.total_expense_cash} /></span>
+              <span className="text-red-400 font-medium"><CurrencyDisplay value={expenseTotals.cash} /></span>
             </div>
             <div className="flex justify-between bg-slate-800/30 rounded px-3 py-2">
               <span className="text-slate-300">Otros:</span>
-              <span className="text-red-400 font-medium"><CurrencyDisplay value={register.total_expense_others} /></span>
+              <span className="text-red-400 font-medium"><CurrencyDisplay value={expenseTotals.others} /></span>
             </div>
           </div>
           <div className="flex justify-between px-3 py-2 bg-red-500/10 rounded border border-red-500/20">
             <span className="text-slate-200 font-medium">Total:</span>
-            <span className="text-red-400 font-semibold"><CurrencyDisplay value={totalExpense} /></span>
+            <span className="text-red-400 font-semibold"><CurrencyDisplay value={expenseTotals.total} /></span>
           </div>
         </div>
 
