@@ -94,13 +94,16 @@ interface IncomeSportsCourt {
   partial_pay: number;
   partial_payment_method: string;
   date_partial_pay: string;
+  partial_register_id: number | null;
   rest_pay: number | null;
   rest_payment_method: string;
   date_rest_pay: string | null;
+  rest_register_id: number | null;
   sports_court: SportsCourt;
   price: number;
   created_at: string;
 }
+
 
 interface Expense {
   id: number;
