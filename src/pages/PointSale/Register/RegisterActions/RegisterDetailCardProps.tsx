@@ -1,5 +1,5 @@
 import React from 'react';
-import {  TrendingUp, TrendingDown, User, Calendar, Clock, Receipt, Trophy, Wallet } from "lucide-react";
+import {  TrendingUp, TrendingDown, User, Calendar, Clock, Receipt, Trophy} from "lucide-react";
 import { useGetRegisterById } from '@/hooks/admin/Register/useGetRegisterById';
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -269,23 +269,6 @@ const RegisterDetailCard: React.FC<RegisterDetailCardProps> = ({ id }) => {
           </div>
         </div>
 
-        {/* Balance en Efectivo (CAJA) */}
-        <div className="space-y-2 bg-amber-500/5 p-3 rounded-lg border border-amber-500/20">
-          <div className="flex items-center gap-2 text-amber-400 mb-2">
-            <Wallet className="w-4 h-4" />
-            <h4 className="font-medium text-sm uppercase tracking-wide">Balance en Caja (Solo Efectivo)</h4>
-          </div>
-          <div className="flex justify-between px-3 py-2 bg-amber-500/10 rounded border border-amber-500/20">
-            <span className="text-slate-200 font-medium">Balance Efectivo:</span>
-            <span className={`font-semibold ${cashBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              <CurrencyDisplay value={cashBalance} />
-            </span>
-          </div>
-          <div className="flex justify-between px-3 py-2 bg-amber-600/20 rounded border border-amber-500/30">
-            <span className="text-white font-medium">Cierre Esperado en Caja:</span>
-            <span className="text-white font-bold"><CurrencyDisplay value={expectedCashClose} /></span>
-          </div>
-        </div>
 
         {/* Usuario que cerró */}
         {register.is_close && register.user_close && (
