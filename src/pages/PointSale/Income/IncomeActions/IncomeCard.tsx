@@ -1,7 +1,6 @@
 // src/components/admin/Income/IncomeCard.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetIncomeById } from "@/hooks/pointSale/Income/useGetIncomeById";
-import { Loader2, AlertCircle, CreditCard, Calendar, User } from "lucide-react";
+import { Loader2, AlertCircle, CreditCard, Calendar, User, Package, DollarSign, FileText } from "lucide-react";
 
 interface IncomeCardProps {
   id: number;
@@ -12,16 +11,16 @@ export const IncomeCard = ({ id }: IncomeCardProps) => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6 text-slate-300">
-        <Loader2 className="animate-spin mr-2 text-indigo-500" />
-        <span className="text-sm">Cargando ingreso...</span>
+      <div className="flex flex-col items-center justify-center p-8 space-y-3">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
+        <span className="text-sm text-slate-400">Cargando ingreso...</span>
       </div>
     );
   }
 
   if (isError && error) {
     return (
-      <div className="flex items-center gap-2 p-6 text-red-400 bg-red-500/10 rounded-xl border border-red-500/20 shadow-lg">
+      <div className="flex items-center gap-3 p-4 text-red-400 bg-red-500/10 rounded-lg border border-red-500/30">
         <AlertCircle className="w-5 h-5 shrink-0" />
         <span className="text-sm font-medium">{error.message}</span>
       </div>
@@ -30,73 +29,131 @@ export const IncomeCard = ({ id }: IncomeCardProps) => {
 
   if (!income) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-slate-300 bg-slate-900/80 border border-white/10 rounded-2xl shadow-inner backdrop-blur-md">
-        <AlertCircle className="w-6 h-6 mb-2 text-slate-400" />
-        <span className="text-sm">No se encontró el ingreso</span>
+      <div className="flex flex-col items-center justify-center p-8 space-y-3">
+        <AlertCircle className="w-10 h-10 text-slate-400" />
+        <span className="text-sm text-slate-400">No se encontró el ingreso</span>
       </div>
     );
   }
 
   return (
-    <Card className="relative bg-slate-900/80 border border-white/10 shadow-2xl rounded-2xl text-white backdrop-blur-xl overflow-hidden divide-y divide-white/10">
-      {/* Header */}
-      <CardHeader className="">
-        <CardTitle className="flex items-center justify-between text-lg">
-          <span className="font-semibold tracking-wide">
-            Ingreso #{income.id}
-          </span>
-          <span className="text-emerald-500 font-bold text-2xl drop-shadow">
-            ${income.total}
-          </span>
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-3">
+      {/* Header con ID y Total destacado */}
+      <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg p-4 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-indigo-200 text-xs font-medium mb-1">Ingreso</p>
+            <p className="text-white text-2xl font-bold">#{income.id}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-indigo-200 text-xs font-medium mb-1">Total</p>
+            <p className="text-white text-3xl font-bold">${income.total.toLocaleString('es-AR')}</p>
+          </div>
+        </div>
+      </div>
 
-      {/* Info principal */}
-      <CardContent className="space-y-4 py-4">
-        <div className="flex items-center gap-2 text-slate-300">
-          <User className="w-4 h-4 text-slate-400" />
-          <span className="text-sm">
+      {/* Info Grid - 2 columnas en móvil, 3 en tablet+ */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+        {/* Usuario */}
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <User className="w-4 h-4 text-blue-400" />
+            <p className="text-xs text-slate-400">Usuario</p>
+          </div>
+          <p className="text-sm text-white font-medium truncate">
             {income.user.first_name} {income.user.last_name}
-          </span>
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-300">
-          <CreditCard className="w-4 h-4 text-slate-400" />
-          <span className="capitalize text-sm">{income.payment_method}</span>
+        {/* Método de pago */}
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <CreditCard className="w-4 h-4 text-emerald-400" />
+            <p className="text-xs text-slate-400">Pago</p>
+          </div>
+          <p className="text-sm text-white font-medium capitalize">
+            {income.payment_method}
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-300">
-          <Calendar className="w-4 h-4 text-slate-400" />
-          <span className="text-sm">
+        {/* Fecha */}
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="w-4 h-4 text-amber-400" />
+            <p className="text-xs text-slate-400">Fecha</p>
+          </div>
+          <p className="text-sm text-white font-medium">
             {new Date(income.created_at).toLocaleString("es-AR", {
-              dateStyle: "medium",
+              dateStyle: "short",
               timeStyle: "short",
             })}
+          </p>
+        </div>
+      </div>
+
+      {/* Descripción (si existe) */}
+      {income.description && (
+        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="w-4 h-4 text-slate-400" />
+            <p className="text-xs text-slate-400 font-medium">Descripción</p>
+          </div>
+          <p className="text-sm text-slate-300 leading-relaxed">{income.description}</p>
+        </div>
+      )}
+
+      {/* Productos */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-purple-400" />
+            <p className="text-sm text-white font-semibold">Productos</p>
+          </div>
+          <span className="text-xs text-slate-400 bg-slate-700/50 px-2 py-1 rounded-full">
+            {income.items.length} {income.items.length === 1 ? 'item' : 'items'}
           </span>
         </div>
-      </CardContent>
 
-      {/* Items */}
-      <CardContent className="py-4">
-        <h4 className="text-slate-200 text-sm font-semibold mb-3">
-          Items
-        </h4>
-        <ul className="space-y-2">
+        {/* Lista de productos - Compacta y con scroll si es necesario */}
+        <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
           {income.items.map((item) => (
-            <li
+            <div
               key={item.id}
-              className="flex justify-between items-center border-b border-white/10 pb-2 last:border-0"
+              className="flex items-center justify-between p-2 bg-slate-700/30 rounded-md hover:bg-slate-700/50 transition-colors"
             >
-              <span className="text-slate-300 text-sm">
-                {item.product.name} × {item.quantity}
-              </span>
-              <span className="font-semibold text-white text-sm">
-                ${item.subtotal}
-              </span>
-            </li>
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="text-sm text-white font-medium truncate">{item.product.name}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs text-slate-400">Cant: {item.quantity}</span>
+                  <span className="text-xs text-slate-500">•</span>
+                  <span className="text-xs text-slate-400">${item.product.price.toLocaleString('es-AR')} c/u</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-sm font-bold text-emerald-400 whitespace-nowrap">
+                  {item.subtotal.toLocaleString('es-AR')}
+                </span>
+              </div>
+            </div>
           ))}
-        </ul>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+
+      {/* Resumen final */}
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-emerald-500/20 rounded-full p-2">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+            </div>
+            <span className="text-sm text-slate-300 font-medium">Total del Ingreso</span>
+          </div>
+          <span className="text-2xl font-bold text-emerald-400">
+            ${income.total.toLocaleString('es-AR')}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 };

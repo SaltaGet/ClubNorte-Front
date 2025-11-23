@@ -57,7 +57,7 @@ const TableExpenses = () => {
    * Estado para filtros de fecha
    */
   const [dateRange, setDateRange] = useState<DateRange>(
-    PRESET_BUTTONS.lastMonth.getRange()
+    PRESET_BUTTONS.today.getRange()
   );
 
   /**
@@ -235,7 +235,7 @@ const TableExpenses = () => {
           dateRange={dateRange}
           onChange={setDateRange}
           presets={['today', 'last7days', 'last30days', 'lastMonth']}
-          defaultPreset="lastMonth"
+          defaultPreset="today"
           showTitle={true}
           buttonStyle="default"
         />

@@ -29,7 +29,7 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
     defaultValues: {
       method: 'add',
       product_id: productId,
-      stock: 0
+      stock: undefined
     }
   });
 
@@ -40,7 +40,11 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
   const stockValue = watch('stock');
 
   const onSubmit = (data: UpdateStockDepositData) => {
-    const stock = parseInt(String(data.stock).replace(/,/g, '')) || 0;
+    const stock = parseInt(String(data.stock || '0').replace(/,/g, '')) || 0;
+    
+    if (stock === 0) {
+      return;
+    }
     
     updateStockDeposit({
       ...data,
@@ -147,12 +151,15 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
   };
 
   const calculateNewStock = () => {
-    const value = typeof stockValue === 'string' ? parseInt(stockValue.replace(/,/g, '')) || 0 : stockValue || 0;
+    const value = typeof stockValue === 'string' 
+      ? parseInt(stockValue.replace(/,/g, '')) || 0 
+      : stockValue || 0;
+    
     switch (method) {
       case 'add':
         return currentStock + value;
       case 'subtract':
-        return currentStock - value;
+        return Math.max(0, currentStock - value);
       case 'set':
         return value;
       default:
@@ -184,31 +191,75 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 md:space-y-4">
-        {/* Info del Stock Depósito - Destacada */}
-        <div className="p-3 md:p-4 bg-emerald-600/20 border-2 border-emerald-500/50 rounded-lg">
-          <p className="text-emerald-400 text-xs font-medium mb-1">Depósito</p>
-          <p className="text-white text-base md:text-lg font-bold truncate">{productName}</p>
-          <p className="text-emerald-300 text-xl md:text-2xl font-bold mt-2">{currentStock.toLocaleString('es-ES')} unidades</p>
+        {/* Botón Submit - ARRIBA para no perderse con teclado virtual */}
+        <button
+          type="submit"
+          disabled={isUpdatingStock || !stockValue || stockValue === 0}
+          className="w-full py-3 md:py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg font-bold text-base md:text-lg flex items-center justify-center gap-2 md:gap-3 shadow-lg hover:shadow-indigo-500/30 transition-all duration-300"
+        >
+          {isUpdatingStock ? (
+            <>
+              <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>Actualizando...</span>
+            </>
+          ) : (
+            <>
+              <Target className="w-4 h-4 md:w-5 md:h-5" />
+              <span>Actualizar Stock del Depósito</span>
+            </>
+          )}
+        </button>
+
+        {/* Campo de Cantidad - PRIMERO */}
+        <div>
+          <label className="text-slate-200 text-sm md:text-base font-semibold mb-2 block">
+            Cantidad a modificar
+          </label>
+          <Controller
+            control={control}
+            name="stock"
+            rules={{
+              required: 'La cantidad es requerida',
+              validate: (value) => {
+                const numValue = parseInt(String(value || '0').replace(/,/g, '')) || 0;
+                if (numValue === 0) return 'La cantidad debe ser mayor a 0';
+                return true;
+              }
+            }}
+            render={({ field: { onChange, value, ...field } }) => (
+              <NumericFormat
+                {...field}
+                value={value === undefined || value === null ? '' : value}
+                onValueChange={(values) => {
+                  onChange(values.value ? parseInt(values.value) : undefined);
+                }}
+                placeholder="0"
+                allowNegative={false}
+                thousandSeparator=","
+                decimalSeparator="."
+                isAllowed={(values) => {
+                  const { floatValue } = values;
+                  return floatValue === undefined || floatValue >= 0;
+                }}
+                onFocus={(e) => {
+                  e.target.select();
+                }}
+                className="w-full bg-slate-700 text-white text-xl md:text-3xl font-bold placeholder-slate-500 border-2 border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg px-4 py-4 md:py-5 transition-all text-center"
+              />
+            )}
+          />
+          {errors.stock && (
+            <p className="text-red-400 text-xs md:text-sm mt-1.5 flex items-center gap-1 font-medium">
+              <span>⚠</span>
+              {errors.stock.message}
+            </p>
+          )}
         </div>
 
-        {/* Info de Puntos de Venta - Compacta */}
-        {product?.stock_point_sales && product.stock_point_sales.length > 0 && (
-          <div className="p-2 md:p-3 bg-slate-700/50 rounded-lg border border-slate-600 text-xs">
-            <p className="text-slate-400 mb-1 font-medium">Otros puntos</p>
-            <div className="flex gap-2 flex-wrap">
-              {product.stock_point_sales.map((point) => (
-                <span key={point.id} className="text-blue-300 bg-slate-800/50 px-2 py-1 rounded">
-                  {point.name}: {point.stock}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Selector de Método */}
+        {/* Selector de Método - SEGUNDO */}
         <div>
-          <label className="text-slate-200 text-xs md:text-sm font-medium mb-2 block">
-            Operación
+          <label className="text-slate-200 text-sm md:text-base font-semibold mb-2 block">
+            Tipo de operación
           </label>
           <div className="grid grid-cols-3 gap-2">
             {['add', 'subtract', 'set'].map((m) => (
@@ -223,15 +274,17 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
                   className="hidden"
                 />
                 <div
-                  className={`p-2 md:p-3 rounded-lg border-2 transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
+                  className={`p-3 md:p-4 rounded-lg border-2 transition-all duration-300 flex flex-col items-center justify-center gap-2 ${
                     method === m
-                      ? 'border-indigo-500 bg-indigo-600/20'
-                      : 'border-slate-600 bg-slate-700/50 hover:border-slate-500'
+                      ? 'border-indigo-500 bg-indigo-600/30 shadow-lg shadow-indigo-500/20'
+                      : 'border-slate-600 bg-slate-700/50 hover:border-slate-500 hover:bg-slate-700'
                   }`}
                 >
-                  {getMethodIcon(m)}
-                  <span className="text-xs md:text-sm font-semibold text-white">
-                    {m === 'add' ? 'Agregar' : m === 'subtract' ? 'Restar' : 'Fijar'}
+                  <div className={method === m ? 'text-indigo-400' : 'text-slate-400'}>
+                    {getMethodIcon(m)}
+                  </div>
+                  <span className={`text-xs md:text-sm font-bold ${method === m ? 'text-white' : 'text-slate-300'}`}>
+                    {m === 'add' ? 'Agregar' : m === 'subtract' ? 'Restar' : 'Establecer'}
                   </span>
                 </div>
               </label>
@@ -239,68 +292,58 @@ const AdjustDepositStock: React.FC<AdjustDepositStockProps> = ({
           </div>
         </div>
 
-        {/* Campo de Cantidad */}
-        <div>
-          <label className="text-slate-200 text-xs md:text-sm font-medium mb-2 block">
-            Cantidad
-          </label>
-          <Controller
-            control={control}
-            name="stock"
-            rules={{
-              required: 'La cantidad es requerida',
-              min: { value: 0, message: 'La cantidad debe ser mayor a 0' }
-            }}
-            render={({ field }) => (
-              <NumericFormat
-                {...field}
-                placeholder="0"
-                allowNegative={false}
-                thousandSeparator=","
-                decimalSeparator="."
-                valueIsNumericString
-                className="w-full bg-slate-700 text-white placeholder-slate-400 border border-slate-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-lg px-3 py-2.5 md:py-3 transition-all text-sm md:text-base"
-              />
-            )}
-          />
-          {errors.stock && (
-            <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1">
-              <span>⚠</span>
-              {errors.stock.message}
-            </p>
-          )}
-          <p className="text-slate-400 text-xs md:text-sm mt-1.5 font-medium">
-            Nuevo total: <span className="text-white">{calculateNewStock().toLocaleString('es-ES')}</span> unidades
-          </p>
+        {/* Cálculo del nuevo stock */}
+        {stockValue !== undefined && stockValue !== null && stockValue !== 0 && (
+          <div className="p-3 md:p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+            <p className="text-slate-400 text-xs md:text-sm mb-1 font-medium">Resultado de la operación:</p>
+            <div className="flex items-baseline gap-2 flex-wrap justify-center">
+              <span className="text-slate-300 text-lg md:text-xl font-medium">{currentStock.toLocaleString('es-ES')}</span>
+              <span className="text-indigo-400 text-base md:text-lg font-bold">
+                {method === 'add' ? '+' : method === 'subtract' ? '−' : '→'}
+              </span>
+              {method !== 'set' && (
+                <>
+                  <span className="text-white text-lg md:text-xl font-medium">{(stockValue || 0).toLocaleString('es-ES')}</span>
+                  <span className="text-indigo-400 text-base md:text-lg font-bold">=</span>
+                </>
+              )}
+              <span className="text-emerald-400 text-2xl md:text-3xl font-bold">{calculateNewStock().toLocaleString('es-ES')}</span>
+              <span className="text-slate-400 text-sm md:text-base">unidades</span>
+            </div>
+          </div>
+        )}
+
+        {/* Info del Stock Depósito - Destacada */}
+        <div className="p-3 md:p-4 bg-emerald-600/20 border-2 border-emerald-500/50 rounded-lg">
+          <p className="text-emerald-400 text-xs font-medium mb-1">Stock actual en Depósito</p>
+          <p className="text-white text-base md:text-lg font-bold truncate">{productName}</p>
+          <p className="text-emerald-300 text-xl md:text-2xl font-bold mt-2">{currentStock.toLocaleString('es-ES')} unidades</p>
         </div>
+
+        {/* Info de Puntos de Venta - Compacta */}
+        {product?.stock_point_sales && product.stock_point_sales.length > 0 && (
+          <details className="p-2 md:p-3 bg-slate-700/30 rounded-lg border border-slate-600 text-xs cursor-pointer">
+            <summary className="text-slate-400 font-medium cursor-pointer select-none hover:text-slate-300 transition-colors">
+              Ver stock en otros puntos ({product.stock_point_sales.length})
+            </summary>
+            <div className="flex gap-2 flex-wrap mt-2 pt-2 border-t border-slate-600">
+              {product.stock_point_sales.map((point) => (
+                <span key={point.id} className="text-blue-300 bg-slate-800/50 px-2 py-1 rounded font-medium">
+                  {point.name}: {point.stock}
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
 
         {/* Error */}
         {updateStockError && (
           <div className="p-3 md:p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-xs md:text-sm">
+            <p className="text-red-400 text-xs md:text-sm font-medium">
               {updateStockError instanceof Error ? updateStockError.message : 'Error al actualizar el stock'}
             </p>
           </div>
         )}
-
-        {/* Botón Submit */}
-        <button
-          type="submit"
-          disabled={isUpdatingStock}
-          className="w-full py-3 md:py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-base md:text-lg flex items-center justify-center gap-2 md:gap-3 shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 mt-2"
-        >
-          {isUpdatingStock ? (
-            <>
-              <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              <span>Actualizando...</span>
-            </>
-          ) : (
-            <>
-              <Target className="w-4 h-4 md:w-5 md:h-5" />
-              <span>Actualizar Stock</span>
-            </>
-          )}
-        </button>
       </form>
     </div>
   );
