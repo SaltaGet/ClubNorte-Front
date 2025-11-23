@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useUserStore from "@/store/useUserStore"
 import RegisterDetailCard from "./RegisterDetailCardProps"
 import RegisterTransactions from "./RegisterTransactions"
+import { FileText, DollarSign } from "lucide-react"
 
 type RegisterActionsProps = {
   id: number
@@ -12,60 +13,45 @@ const RegisterActions: React.FC<RegisterActionsProps> = ({ id }) => {
   const { isUserAdmin, getUserRole } = useUserStore()
   
   // Chequeo de permisos
-  const canEdit = isUserAdmin() || getUserRole() === "admin"
-
+  const canViewTransactions = isUserAdmin() || getUserRole() === "admin"
+  
   return (
-    <div className="w-full max-w-2xl mx-auto bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
-      <div className="w-full bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-6">
-        <Tabs defaultValue="detalle" className="w-full">
-          <TabsList
-            className={`grid w-full ${
-              canEdit ? "grid-cols-3" : "grid-cols-1"
-            } bg-slate-800/50 rounded-xl mb-6 border border-slate-700`}
+    <div className="w-full max-w-2xl mx-auto p-4">
+      <Tabs defaultValue="detalle" className="w-full">
+        <TabsList
+          className={`grid w-full ${
+            canViewTransactions ? "grid-cols-2" : "grid-cols-1"
+          } bg-slate-800/80 rounded-lg mb-4 p-1 border border-slate-700/50`}
+        >
+          <TabsTrigger
+            value="detalle"
+            className="flex items-center justify-center gap-2 text-slate-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-md transition-all text-sm font-medium py-2"
           >
+            <FileText className="w-4 h-4" />
+            <span>Detalle</span>
+          </TabsTrigger>
+          
+          {canViewTransactions && (
             <TabsTrigger
-              value="detalle"
-              className="text-slate-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-xl transition-colors"
+              value="transacciones"
+              className="flex items-center justify-center gap-2 text-slate-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-md transition-all text-sm font-medium py-2"
             >
-              📋 Detalle
+              <DollarSign className="w-4 h-4" />
+              <span>Transacciones</span>
             </TabsTrigger>
-            {canEdit && (
-              <TabsTrigger
-                value="transacciones"
-                className="text-slate-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl transition-colors"
-              >
-                💰 Transacciones
-              </TabsTrigger>
-            )}
-            {canEdit && (
-              <TabsTrigger
-                value="acciones"
-                className="text-slate-300 data-[state=active]:bg-amber-500 data-[state=active]:text-white rounded-xl transition-colors"
-              >
-                ⚙️ Acciones
-              </TabsTrigger>
-            )}
-          </TabsList>
+          )}
+        </TabsList>
 
-          <TabsContent value="detalle">
-            <RegisterDetailCard id={id} />
+        <TabsContent value="detalle" className="mt-0">
+          <RegisterDetailCard id={id} />
+        </TabsContent>
+
+        {canViewTransactions && (
+          <TabsContent value="transacciones" className="mt-0">
+            <RegisterTransactions id={id} />
           </TabsContent>
-
-          {canEdit && (
-            <TabsContent value="transacciones">
-              <RegisterTransactions id={id} />
-            </TabsContent>
-          )}
-
-          {canEdit && (
-            <TabsContent value="acciones">
-              <div className="bg-white/5 rounded-lg p-6 text-center text-slate-400">
-                Componente de acciones próximamente
-              </div>
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
+        )}
+      </Tabs>
     </div>
   )
 }

@@ -10,31 +10,38 @@ import ReportBase from "@/pages/Reports/ReportFor/ReportBase";
 import StockControlReport from "@/pages/Reports/ReportFor/StockControlReport";
 import StockMovementsReport from "@/pages/Reports/ReportFor/StockMovementsReport";
 import Reports from "@/pages/Reports/Reports";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
+import RouterError from "./RouterError";
 
-const Layout = () => (
-  <>
-    <Header />
-    <Outlet />
-    <Footer />
-    <Toaster position="top-center" />
-  </>
-);
+const Layout = () => {
+  const location = useLocation();
+  
+  // Ocultar footer en rutas de point-sale
+  const hideFooter = location.pathname.startsWith("/point-sale/");
+  
+  return (
+    <>
+      <Header />
+      <Outlet />
+      {!hideFooter && <Footer />}
+      <Toaster position="top-center" />
+    </>
+  );
+};
 
 const routers = createBrowserRouter([
   {
     element: <Layout />,
+    errorElement: <RouterError />,
     children: [
       {
         path: "/",
         element: <Home />,
-        errorElement: <h1>FAIL HOME</h1>,
       },
       {
         path: "/admin",
         element: <Admin />,
-        errorElement: <h1>FAIL ADMIN</h1>,
       },
       {
         path: "point-sale/:id",
@@ -62,11 +69,11 @@ const routers = createBrowserRouter([
       },
       {
         path: "reports/stock-movement",
-        element: <StockMovementsReport/>,
+        element: <StockMovementsReport />,
       },
       {
         path: "reports/descargar-informe",
-        element: <DownloadReports/>,
+        element: <DownloadReports />,
       },
     ],
   },
