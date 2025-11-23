@@ -103,7 +103,7 @@ const TableSportCourt = () => {
   });
 
   return (
-    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 h-full">
       <div className="w-full max-w-6xl space-y-4">
         {/* Tabla */}
         <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-lg">

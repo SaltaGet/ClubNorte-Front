@@ -113,7 +113,7 @@ export default function FormCreateIncomeSportCourt() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl overflow-hidden">
           {/* Header */}

@@ -28,7 +28,7 @@ export interface Product {
 export interface ProductCreateData {
   category_id: number;
   code: string;
-  description: string;
+  description?: string ;
   name: string;
   price: number;
   min_amount: number;
@@ -39,7 +39,7 @@ export interface ProductCreateData {
 export interface ProductUpdateData {
   category_id: number;
   code: string;
-  description: string;
+  description?: string;
   name: string;
   price: number;
   min_amount: number;

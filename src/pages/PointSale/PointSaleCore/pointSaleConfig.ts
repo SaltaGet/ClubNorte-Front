@@ -17,19 +17,19 @@ import IncomeCreate from "../Income/IncomeCreate";
 import TableIncomes from "../Income/TableIncomes";
 import IncomeSportCourtCreate from "../IncomeSportCourt/IncomeSportCourtCreate";
 import TableIncomesSportCourt from "../IncomeSportCourt/TableIncomesSportCourt";
-import TableProductPointSale from "../ProductPoinSale/TableProductPointSale";
 import RegisterPointSale from "../Register/RegisterPointSale";
 import FormCreateSportCourt from "../SportCourt/FromCreateSportCourt";
 import TableSportCourt from "../SportCourt/TableSportCourt";
 import TableRegisters from "../Register/TableRegisters";
 import ExpenseCreate from "../Expense/ExpenseCreate";
 import TableExpenses from "../Expense/TableExpense";
+import ViewProductPointSale from "../ProductPoinSale/ViewProductPointSale";
 
 // ==================== DEFINICIÓN DE ROLES ====================
 export const UserRole = {
   ADMIN: "admin",
   VENDEDOR: "vendedor",
-  REPONEDOR: "reponedor",
+  REPONEDOR: "repositor",
 } as const;
 
 export type UserRole = typeof UserRole[keyof typeof UserRole];
@@ -83,7 +83,7 @@ export const pointSaleConfig: PointSaleConfig = {
               name: "Crear Ingreso",
               icon: PlusCircle,
               component: IncomeCreate,
-              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
             },
             {
               id: "list-ingreso",
@@ -97,7 +97,7 @@ export const pointSaleConfig: PointSaleConfig = {
               name: "Crear Ingreso Cancha",
               icon: PlusCircle,
               component: IncomeSportCourtCreate,
-              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
             },
             {
               id: "list-ingreso-cancha",
@@ -126,14 +126,14 @@ export const pointSaleConfig: PointSaleConfig = {
               name: "Crear Gasto",
               icon: PlusCircle,
               component: ExpenseCreate,
-              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
             },
             {
               id: "list-gastos",
               name: "Lista de Gastos",
               icon: ListOrdered,
               component: TableExpenses,
-              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
             },
           ],
         },
@@ -154,7 +154,7 @@ export const pointSaleConfig: PointSaleConfig = {
               id: "listar",
               name: "Listar Productos",
               icon: Boxes,
-              component: TableProductPointSale,
+              component: ViewProductPointSale,
               // Todos pueden listar
             },
           ],
@@ -164,7 +164,7 @@ export const pointSaleConfig: PointSaleConfig = {
     {
       id: "Caja",
       name: "Caja e Informes",
-      allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+      allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
       models: [
         {
           id: "caja",
@@ -177,7 +177,7 @@ export const pointSaleConfig: PointSaleConfig = {
               name: "Abrir / Cerrar Caja",
               icon: DoorOpen,
               component: RegisterPointSale,
-              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR],
+              allowedRoles: [UserRole.ADMIN, UserRole.VENDEDOR, UserRole.REPONEDOR],
             },
             {
               id: "registro-caja",

@@ -36,8 +36,8 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
   const role = useUserStore((state) => state.getUserRole());
   const isAdmin = useUserStore((state) => state.isUserAdmin());
   
-  // Super admin o con role "admin" pueden ajustar stock
-  const canAdjustStock = isAdmin || role === "admin";
+  // Super admin, role "admin" o "repositor" pueden ajustar stock
+  const canAdjustStock = isAdmin || role === "admin" || role === "repositor";
 
   const [activeMethod, setActiveMethod] = useState<ActiveMethod>("selection");
 
@@ -160,7 +160,7 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
             </div>
           </button>
 
-          {/* Opción 3: Ajustar Stock Depósito - Solo para super_admin o admin */}
+          {/* Opción 3: Ajustar Stock Depósito - Admin o Repositor */}
           {canAdjustStock ? (
             <button
               onClick={() => setActiveMethod("adjust")}

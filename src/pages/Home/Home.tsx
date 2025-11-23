@@ -176,7 +176,6 @@ export default function Home() {
               }
             }}
           >
-            ¿Olvidaste tu contraseña?
           </a>
         </p>
       </div>

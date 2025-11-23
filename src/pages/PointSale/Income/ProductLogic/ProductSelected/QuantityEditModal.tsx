@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
+import { Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,18 @@ export default function QuantityEditModal({
     onClose();
   };
 
+  // Sumar cantidad rápida
+  const addQuickAmount = (amount: number) => {
+    if (!selectedItem) return;
+    
+    const current = parseInt(tempQuantity) || 0;
+    const newValue = current + amount;
+    const maxStock = selectedItem.product.stock || 999;
+    const finalValue = Math.min(newValue, maxStock);
+    
+    setTempQuantity(finalValue.toString());
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -69,13 +82,6 @@ export default function QuantityEditModal({
     }
   };
 
-  // Auto-focus input when dialog opens
-  useEffect(() => {
-    if (selectedItem && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [selectedItem]);
-
   if (!selectedItem) return null;
 
   const currentValue = parseInt(tempQuantity) || 0;
@@ -84,9 +90,12 @@ export default function QuantityEditModal({
   const isUnderMin = currentValue < 1;
   const hasError = isOverStock || isUnderMin;
 
+  // Botones rápidos - solo mostrar los que no excedan el stock
+  const quickButtons = [1, 3, 5, 10].filter(amount => currentValue + amount <= maxStock);
+
   return (
     <Dialog open={!!selectedItem} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700">
+      <DialogContent className="sm:max-w-md bg-slate-800 border-slate-700" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-white">
             Cambiar cantidad
@@ -110,7 +119,7 @@ export default function QuantityEditModal({
           {/* Input cantidad con react-number-format */}
           <div className="space-y-2">
             <label className="text-sm text-slate-300 block">
-              Nueva cantidad:
+              Cantidad actual:
             </label>
             <NumericFormat
               getInputRef={inputRef}
@@ -154,6 +163,28 @@ export default function QuantityEditModal({
             )}
           </div>
 
+          {/* Botones rápidos para sumar */}
+          {quickButtons.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm text-slate-300 block">
+                Sumar rápido:
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {quickButtons.map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    onClick={() => addQuickAmount(amount)}
+                    className="flex items-center justify-center gap-1 px-3 py-3 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded-lg transition-colors active:scale-95 font-medium"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {amount}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Controles */}
           <div className="flex gap-2 pt-2">
             <button
@@ -178,7 +209,7 @@ export default function QuantityEditModal({
           </div>
 
           <p className="text-xs text-slate-400 text-center">
-            {hasError ? 'Corrige el error para continuar' : 'Presiona Enter para confirmar'}
+            {hasError ? 'Corrige el error para continuar' : 'Usa los botones o escribe la cantidad'}
           </p>
         </div>
       </DialogContent>

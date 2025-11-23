@@ -105,7 +105,7 @@ export default function ProductSearchByName({
 
       {/* Dropdown de resultados */}
       {shouldShowResults && (
-        <div className="absolute z-20 w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl max-h-48 sm:max-h-56 overflow-y-auto">
+        <div className="absolute z-20 w-full mt-1 bg-slate-900 border border-slate-600 rounded-lg shadow-2xl max-h-48 sm:max-h-56 overflow-y-auto">
           {hasSearchError ? (
             <div className="p-3 sm:p-4 text-red-400 text-center text-sm">
               Error: {searchError?.message || 'Error al buscar productos'}
@@ -126,18 +126,18 @@ export default function ProductSearchByName({
                   type="button"
                   onClick={() => handleProductSelect(product)}
                   disabled={isDisabled}
-                  className={`w-full text-left px-3 sm:px-4 py-3 sm:py-2 border-b border-slate-700 last:border-b-0 transition-colors touch-manipulation ${
+                  className={`w-full text-left px-3 sm:px-4 py-3 sm:py-2 border-b border-slate-700/50 last:border-b-0 transition-colors touch-manipulation ${
                     isDisabled
-                      ? 'bg-slate-900 cursor-not-allowed opacity-50' 
-                      : 'hover:bg-slate-700 active:bg-slate-600 text-white'
+                      ? 'bg-slate-800/50 cursor-not-allowed opacity-50' 
+                      : 'hover:bg-indigo-900/30 active:bg-indigo-800/40 text-white'
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="font-medium text-sm sm:text-base truncate text-slate-300">{product.name}</div>
+                        <div className="font-medium text-sm sm:text-base truncate text-white">{product.name}</div>
                         {isAlreadySelected && (
-                          <span className="px-2 py-1 text-xs bg-yellow-900 text-yellow-300 rounded-full flex-shrink-0">
+                          <span className="px-2 py-1 text-xs bg-amber-900/50 text-amber-300 rounded-full flex-shrink-0 border border-amber-700/30">
                             Ya agregado
                           </span>
                         )}
@@ -145,7 +145,7 @@ export default function ProductSearchByName({
                       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 text-xs text-slate-400 mt-1 sm:mt-0">
                         <span>Código: {product.code}</span>
                         <span>Categoría: {product.category.name}</span>
-                        <span className={`${hasNoStock ? 'text-red-400' : 'text-slate-500'}`}>
+                        <span className={`${hasNoStock ? 'text-red-400 font-medium' : 'text-emerald-400'}`}>
                           Stock: {product.stock} {hasNoStock ? '(Sin stock)' : ''}
                         </span>
                       </div>

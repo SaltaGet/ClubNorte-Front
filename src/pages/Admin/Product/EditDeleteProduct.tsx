@@ -1,20 +1,13 @@
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { NumericFormat } from 'react-number-format';
 import { useGetProductById } from '@/hooks/admin/Product/useGetProductById';
 import { useProductMutations } from '@/hooks/admin/Product/useProductMutations';
 import { useGetAllCategories } from '@/hooks/admin/Category/useGetAllCategories';
 import { getApiError } from '@/utils/apiError';
 import SuccessMessage from '@/components/generic/SuccessMessage';
-
-interface ProductFormData {
-  category_id: number;
-  code: string;
-  description: string;
-  name: string;
-  price: number;
-  min_amount: number;
-  notifier: boolean;
-}
+import { editProductSchema, type EditProductFormData } from './schemas/editProductSchema';
 
 interface EditDeleteProductProps {
   id: number;
@@ -26,8 +19,20 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
     register,
     handleSubmit,
     formState: { errors },
-    setValue
-  } = useForm<ProductFormData>();
+    setValue,
+    control
+  } = useForm<EditProductFormData>({
+    resolver: zodResolver(editProductSchema),
+    defaultValues: {
+      category_id: 0,
+      code: "",
+      description: "",
+      min_amount: 0,
+      name: "",
+      notifier: false,
+      price: 0
+    }
+  });
 
   // Obtener categorías
   const { 
@@ -71,7 +76,7 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
     }
   }, [product, setValue]);
 
-  const onSubmit = (data: ProductFormData) => {
+  const onSubmit = (data: EditProductFormData) => {
     updateProduct({ id, data });
   };
 
@@ -123,7 +128,6 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
     );
   }
 
-  // El resto del componente permanece igual...
   if (isLoadingProduct || isLoadingCategories) {
     return (
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -213,30 +217,22 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} 
-        onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-    }
-  }} 
-        className="space-y-4">
+        <form 
+          onSubmit={handleSubmit(onSubmit)} 
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+            }
+          }} 
+          className="space-y-4"
+        >
           {/* Nombre y Código */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-slate-200 mb-1">Nombre</label>
               <input
                 type="text"
-                {...register('name', {
-                  required: 'Nombre obligatorio',
-                  minLength: {
-                    value: 2,
-                    message: 'El nombre debe tener al menos 2 caracteres'
-                  },
-                  maxLength: {
-                    value: 100,
-                    message: 'El nombre no puede exceder los 100 caracteres'
-                  }
-                })}
+                {...register('name')}
                 className={inputClass}
                 placeholder="Nombre del producto"
                 disabled={isUpdating || isDeleting}
@@ -250,17 +246,7 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
               <label className="block text-xs text-slate-200 mb-1">Código</label>
               <input
                 type="text"
-                {...register('code', {
-                  required: 'Código obligatorio',
-                  minLength: {
-                    value: 1,
-                    message: 'El código debe tener al menos 1 carácter'
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: 'El código no puede exceder los 20 caracteres'
-                  }
-                })}
+                {...register('code')}
                 className={inputClass}
                 placeholder="Código del producto"
                 disabled={isUpdating || isDeleting}
@@ -275,17 +261,7 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
           <div>
             <label className="block text-xs text-slate-200 mb-1">Descripción</label>
             <textarea
-              {...register('description', {
-                required: 'Descripción obligatoria',
-                minLength: {
-                  value: 5,
-                  message: 'La descripción debe tener al menos 5 caracteres'
-                },
-                maxLength: {
-                  value: 500,
-                  message: 'La descripción no puede exceder los 500 caracteres'
-                }
-              })}
+              {...register('description')}
               className={`${inputClass} min-h-[60px] resize-none`}
               placeholder="Descripción del producto"
               disabled={isUpdating || isDeleting}
@@ -300,24 +276,26 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-slate-200 mb-1">Precio</label>
-              <input
-                type="number"
-                step="0.01"
-                {...register('price', {
-                  required: 'Precio obligatorio',
-                  valueAsNumber: true,
-                  min: {
-                    value: 0.01,
-                    message: 'El precio debe ser mayor a 0'
-                  },
-                  max: {
-                    value: 999999.99,
-                    message: 'El precio no puede exceder 999999.99'
-                  }
-                })}
-                className={`${inputClass} appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
-                placeholder="0.00"
-                disabled={isUpdating || isDeleting}
+              <Controller
+                name="price"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <NumericFormat
+                    value={value}
+                    onValueChange={(values) => {
+                      onChange(values.floatValue || 0);
+                    }}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    prefix="$"
+                    decimalScale={2}
+                    fixedDecimalScale={true}
+                    allowNegative={false}
+                    className={inputClass}
+                    placeholder="$0,00"
+                    disabled={isUpdating || isDeleting}
+                  />
+                )}
               />
               {errors.price && (
                 <p className="text-red-400 text-xs mt-1">{errors.price.message}</p>
@@ -326,19 +304,24 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
 
             <div>
               <label className="block text-xs text-slate-200 mb-1">Stock Mínimo</label>
-              <input
-                type="number"
-                {...register('min_amount', {
-                  required: 'Stock mínimo obligatorio',
-                  valueAsNumber: true,
-                  min: {
-                    value: 0,
-                    message: 'Debe ser >= 0'
-                  }
-                })}
-                className={`${inputClass} appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
-                placeholder="Ej: 10"
-                disabled={isUpdating || isDeleting}
+              <Controller
+                name="min_amount"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <NumericFormat
+                    value={value}
+                    onValueChange={(values) => {
+                      onChange(values.floatValue || 0);
+                    }}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    decimalScale={0}
+                    allowNegative={false}
+                    className={inputClass}
+                    placeholder="Ej: 10"
+                    disabled={isUpdating || isDeleting}
+                  />
+                )}
               />
               {errors.min_amount && (
                 <p className="text-red-400 text-xs mt-1">{errors.min_amount.message}</p>
@@ -349,25 +332,25 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
           {/* Select de Categoría */}
           <div>
             <label className="block text-xs text-slate-200 mb-1">Categoría</label>
-            <select
-              {...register('category_id', {
-                required: 'Categoría obligatoria',
-                valueAsNumber: true,
-                min: {
-                  value: 1,
-                  message: 'Debe seleccionar una categoría válida'
-                }
-              })}
-              className={inputClass}
-              disabled={isUpdating || isDeleting}
-            >
-              <option value="">Seleccionar categoría</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="category_id"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <select
+                  value={value}
+                  onChange={(e) => onChange(Number(e.target.value))}
+                  className={inputClass}
+                  disabled={isUpdating || isDeleting}
+                >
+                  <option value="">Seleccionar categoría</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
             {errors.category_id && (
               <p className="text-red-400 text-xs mt-1">{errors.category_id.message}</p>
             )}
