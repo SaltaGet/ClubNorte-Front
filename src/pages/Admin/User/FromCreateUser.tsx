@@ -27,19 +27,27 @@ const FormCreateUser = () => {
     resetCreateState 
   } = useUserMutations();
 
-  const onSubmit = (data: UserCreateData) => {
-    // Adaptamos point_sales_ids a number[]
-    const payload: UserCreateData = {
-      ...data,
-      point_sales_ids: data.point_sales_ids.map(Number),
-    };
+ const onSubmit = (data: UserCreateData) => {
+  // Asegurar que point_sales_ids sea un array y convertir a números
+  let pointSalesIds: (string | number)[] = [];
+  
+  if (Array.isArray(data.point_sales_ids)) {
+    pointSalesIds = data.point_sales_ids;
+  } else if (data.point_sales_ids) {
+    pointSalesIds = [data.point_sales_ids];
+  }
 
-    createUser(payload, {
-      onSuccess: () => {
-        reset(); // Resetear formulario después del éxito
-      }
-    });
+  const payload: UserCreateData = {
+    ...data,
+    point_sales_ids: pointSalesIds.map(Number),
   };
+
+  createUser(payload, {
+    onSuccess: () => {
+      reset(); // Resetear formulario después del éxito
+    }
+  });
+};
 
   const inputClass =
     "w-full bg-slate-800 border border-slate-700 rounded-md py-1.5 px-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm";

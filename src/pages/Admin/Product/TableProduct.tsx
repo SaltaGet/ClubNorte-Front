@@ -14,7 +14,6 @@ import { useSearchProductsByCode } from "@/hooks/admin/Product/useSearchProducts
 import { useGetProductsByCategory } from "@/hooks/admin/Product/useGetProductsByCategory";
 import { useGetAllCategories } from "@/hooks/admin/Category/useGetAllCategories";
 
-
 // Íconos
 import {
   Eye,
@@ -238,10 +237,10 @@ const TableProduct = () => {
   });
 
   return (
-    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-screen">
-      <div className="w-full max-w-6xl space-y-4">
+    <div className="flex flex-col items-center w-full p-4 md:p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+      <div className="w-full max-w-7xl space-y-4">
         {/* Filtros de búsqueda y categoría */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {/* Buscar por nombre */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
@@ -253,7 +252,7 @@ const TableProduct = () => {
                 setSearchName(e.target.value);
                 if (e.target.value.trim()) {
                   setSearchCode("");
-                  setSelectedCategoryId(null); // limpiar categoría
+                  setSelectedCategoryId(null);
                 }
               }}
               disabled={searchCode.trim().length > 0 || isFilteringByCategory}
@@ -276,7 +275,7 @@ const TableProduct = () => {
                 setSearchCode(e.target.value);
                 if (e.target.value.trim()) {
                   setSearchName("");
-                  setSelectedCategoryId(null); // limpiar categoría
+                  setSelectedCategoryId(null);
                 }
               }}
               disabled={searchName.trim().length > 0 || isFilteringByCategory}
@@ -289,7 +288,6 @@ const TableProduct = () => {
           </div>
 
           {/* Filtro por categoría */}
-          {/* Filtro por categoría */}
           <div>
             <select
               value={selectedCategoryId ?? ""}
@@ -301,7 +299,7 @@ const TableProduct = () => {
               }}
               disabled={
                 searchName.trim().length > 0 || searchCode.trim().length > 0
-              } // <-- se desactiva cuando hay búsqueda
+              }
               className={`w-full bg-slate-900 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500
       ${
         searchName.trim().length > 0 || searchCode.trim().length > 0
@@ -324,8 +322,8 @@ const TableProduct = () => {
           </div>
         </div>
 
-        {/* Tabla */}
-        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-lg">
+        {/* Vista Desktop: Tabla tradicional */}
+        <div className="hidden lg:block overflow-x-auto rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-lg">
           {isLoading ? (
             <div className="p-6 text-slate-400 text-center">
               {isFilteringByCategory
@@ -392,26 +390,124 @@ const TableProduct = () => {
           )}
         </div>
 
+        {/* Vista Móvil/Tablet: Cards */}
+        <div className="lg:hidden space-y-4">
+          {isLoading ? (
+            <div className="p-6 text-slate-400 text-center rounded-2xl border border-white/10 bg-white/5">
+              {isFilteringByCategory
+                ? "Cargando productos por categoría..."
+                : isSearchingByName
+                ? "Buscando productos por nombre..."
+                : isSearchingByCode
+                ? "Buscando productos por código..."
+                : "Cargando productos..."}
+            </div>
+          ) : tableData.length > 0 ? (
+            tableData.map((product) => (
+              <div
+                key={product.id}
+                className="rounded-2xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-lg p-4 space-y-3 relative"
+              >
+                {/* Botón de acción sticky en la esquina superior derecha */}
+                <button
+                  onClick={() => {
+                    setSelectedProductId(product.id);
+                    setIsEditModalOpen(true);
+                  }}
+                  className="absolute top-4 right-4 p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-lg z-10"
+                  aria-label="Ver producto"
+                >
+                  <Eye className="w-5 h-5" />
+                </button>
+
+                {/* Contenido del producto */}
+                <div className="pr-12">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold text-white text-lg">
+                        {product.name}
+                      </h3>
+                      <p className="text-slate-400 text-sm font-mono">
+                        ID: {product.id} • Código: {product.code}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-emerald-500 font-bold text-xl">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Stock por punto de venta */}
+                  <div className="space-y-2 mb-3">
+                    <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                      Stock por punto de venta
+                    </p>
+                    {product.stock_point_sales &&
+                    product.stock_point_sales.length > 0 ? (
+                      <div className="space-y-1">
+                        {product.stock_point_sales.map((point) => (
+                          <div
+                            key={point.id}
+                            className="flex items-center gap-2 text-slate-300 text-sm bg-white/5 rounded-lg p-2"
+                          >
+                            <Store className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <span className="truncate flex-1">{point.name}</span>
+                            <span className="text-emerald-500 font-medium">
+                              {point.stock}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-slate-500 italic text-sm">
+                        Sin stock en puntos de venta
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stock depósito */}
+                  <div className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                    <span className="text-slate-400 text-sm font-medium">
+                      Stock Depósito
+                    </span>
+                    <span className="text-emerald-500 font-bold text-lg">
+                      {product.stock_deposit?.stock ?? 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-6 text-center text-sm text-slate-400 rounded-2xl border border-white/10 bg-white/5">
+              No se encontraron productos
+            </div>
+          )}
+        </div>
+
         {/* Paginación solo si NO hay búsqueda */}
         {!isSearching && (
-          <div className="flex items-center justify-between mt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40"
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40 transition"
+                aria-label="Primera página"
               >
                 <ChevronsLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40"
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40 transition"
+                aria-label="Página anterior"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              <span className="text-slate-400 text-sm">
+              <span className="text-slate-400 text-sm px-2">
                 Página{" "}
                 <strong className="text-white">
                   {pagination.pageIndex + 1} de {productsData.total_pages}
@@ -421,14 +517,16 @@ const TableProduct = () => {
               <button
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40"
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40 transition"
+                aria-label="Página siguiente"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
               <button
                 onClick={() => table.setPageIndex(productsData.total_pages - 1)}
                 disabled={!table.getCanNextPage()}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40"
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white disabled:opacity-40 transition"
+                aria-label="Última página"
               >
                 <ChevronsRight className="w-5 h-5" />
               </button>
@@ -437,7 +535,8 @@ const TableProduct = () => {
             <select
               value={pagination.pageSize}
               onChange={(e) => table.setPageSize(Number(e.target.value))}
-              className="ml-4 bg-slate-900 border border-slate-800 text-slate-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-indigo-500"
+              className="bg-slate-900 border border-slate-800 text-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+              aria-label="Tamaño de página"
             >
               {[5, 10, 20, 50].map((size) => (
                 <option key={size} value={size}>
@@ -453,14 +552,14 @@ const TableProduct = () => {
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
-          setSelectedProductId(null); // Arreglar aquí también
+          setSelectedProductId(null);
         }}
-        title="Editar Producto" // Cambiar título también
+        title="Editar Producto"
         size="md"
       >
-        {selectedProductId && ( // Cambiar la condición
+        {selectedProductId && (
           <EditDeleteProduct
-            id={selectedProductId} // Ahora no será null
+            id={selectedProductId}
             onClose={() => setIsEditModalOpen(false)}
           />
         )}

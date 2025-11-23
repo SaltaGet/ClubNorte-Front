@@ -54,7 +54,7 @@ export default function FormCreateExpense() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
+    <div className="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-red-600/20 to-orange-500/20 px-6 py-5 border-b border-white/10">

@@ -10,7 +10,6 @@ import {
 } from "@tanstack/react-table";
 
 import {
-  Eye,
   ChevronsLeft,
   ChevronsRight,
   ChevronLeft,
@@ -167,7 +166,7 @@ const TableProductPointSale = () => {
       header: "Precio",
       cell: (info) => (
         <span className="text-emerald-500 font-medium">
-          ${info.getValue().toFixed(2)}
+          ${info.getValue().toFixed(0)}
         </span>
       ),
     }),
@@ -177,18 +176,18 @@ const TableProductPointSale = () => {
         <span className="text-emerald-500 font-semibold">{info.getValue()}</span>
       ),
     }),
-    columnHelper.display({
-      id: "actions",
-      header: "Acciones",
-      cell: (info) => (
-        <button
-          onClick={() => alert(`Producto ID: ${info.row.original.id}`)}
-          className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-      ),
-    }),
+    // columnHelper.display({
+    //   id: "actions",
+    //   header: "Acciones",
+    //   cell: (info) => (
+    //     <button
+    //       onClick={() => alert(`Producto ID: ${info.row.original.id}`)}
+    //       className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition"
+    //     >
+    //       <Eye className="w-4 h-4" />
+    //     </button>
+    //   ),
+    // }),
   ];
 
   const table = useReactTable({
@@ -208,7 +207,7 @@ const TableProductPointSale = () => {
   });
 
   return (
-    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 h-full">
       <div className="w-full max-w-6xl space-y-4">
         {/* Inputs de búsqueda */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

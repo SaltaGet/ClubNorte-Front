@@ -20,7 +20,7 @@ interface ApiSuccessResponse<T> {
 }
 
 // Función para crear producto
-const createProduct = async (formData: ProductCreateData): Promise<ApiSuccessResponse<string>> => {
+const createProduct = async (formData: ProductCreateData): Promise<ApiSuccessResponse<number>> => {
   const { data } = await apiClubNorte.post(
     "/api/v1/product/create",
     formData,
@@ -30,7 +30,7 @@ const createProduct = async (formData: ProductCreateData): Promise<ApiSuccessRes
 };
 
 // Función para actualizar producto
-const updateProduct = async (id: number, formData: ProductUpdateData): Promise<ApiSuccessResponse<string>> => {
+const updateProduct = async (id: number, formData: ProductUpdateData): Promise<ApiSuccessResponse<number>> => {
   const { data } = await apiClubNorte.put(
     `/api/v1/product/update`,
     {
@@ -49,7 +49,7 @@ const updateProduct = async (id: number, formData: ProductUpdateData): Promise<A
 };
 
 // Función para actualizar precios masivamente
-const bulkUpdatePrices = async (bulkData: BulkPriceUpdate): Promise<ApiSuccessResponse<string>> => {
+const bulkUpdatePrices = async (bulkData: BulkPriceUpdate): Promise<ApiSuccessResponse<number>> => {
   const { data } = await apiClubNorte.put(
     `/api/v1/product/list_price`,
     bulkData,

@@ -34,17 +34,19 @@ const Modal: React.FC<ModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${sizeClasses[size]} p-0 overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-xl`}>
+      <DialogContent 
+        className={`${sizeClasses[size]} p-0 overflow-hidden bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl`}
+      >
         {/* Header opcional */}
         {(title || description) && (
-          <DialogHeader className="px-6 py-4 border-b border-white/20">
+          <DialogHeader className="px-6 py-5 border-b border-white/10 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
             {title && (
-              <DialogTitle className="text-xl font-bold text-white">
+              <DialogTitle className="text-2xl font-bold text-white tracking-tight">
                 {title}
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription className="text-sm text-slate-300">
+              <DialogDescription className="text-sm text-slate-400 mt-1.5">
                 {description}
               </DialogDescription>
             )}
@@ -52,7 +54,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
         
         {/* Contenido del modal */}
-        <div className="p-0">
+        <div className="px-6 py-5">
           {children}
         </div>
       </DialogContent>

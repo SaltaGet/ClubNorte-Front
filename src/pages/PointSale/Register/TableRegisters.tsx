@@ -49,8 +49,8 @@ const TableRegisters = () => {
    * Filtros de fecha
    */
   const [dateRange, setDateRange] = useState<DateRange>(
-    PRESET_BUTTONS.lastMonth.getRange()
-  );
+  PRESET_BUTTONS.today.getRange() // Cambiar de lastMonth a today
+);
 
   const params = { 
     from_date: dateRange.from, 
@@ -298,7 +298,7 @@ const TableRegisters = () => {
           dateRange={dateRange}
           onChange={setDateRange}
           presets={['today', 'last7days', 'last30days', 'lastMonth']}
-          defaultPreset="lastMonth"
+          defaultPreset="today"
           showTitle={true}
           buttonStyle="default"
         />

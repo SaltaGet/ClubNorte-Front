@@ -21,7 +21,7 @@ interface ApiSuccessResponse<T> {
 }
 
 // Función para crear usuario
-const createUser = async (formData: UserCreateData): Promise<ApiSuccessResponse<string>> => {
+const createUser = async (formData: UserCreateData): Promise<ApiSuccessResponse<number>> => {
   const { data } = await apiClubNorte.post(
     "/api/v1/user/create",
     formData,
@@ -31,7 +31,7 @@ const createUser = async (formData: UserCreateData): Promise<ApiSuccessResponse<
 };
 
 // Función para actualizar usuario
-const updateUser = async (id: number, formData: UserUpdateData): Promise<ApiSuccessResponse<string>> => {
+const updateUser = async (id: number, formData: UserUpdateData): Promise<ApiSuccessResponse<number>> => {
   const { data } = await apiClubNorte.put(
     `/api/v1/user/update`,
     {

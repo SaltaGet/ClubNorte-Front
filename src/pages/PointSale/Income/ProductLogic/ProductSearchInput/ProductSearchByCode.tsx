@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ScanBarcode, Loader2, CheckCircle2, XCircle, AlertTriangle, Package } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Product } from '@/hooks/pointSale/ProductPointSale/useGetAllProductsPointSale';
 import { useSearchProductsPointSaleByCode } from '@/hooks/pointSale/ProductPointSale/useSearchProductsPointSaleByCode';
 
@@ -34,7 +35,7 @@ export default function ProductSearchByCode({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const stateResetTimer = useRef<NodeJS.Timeout | null>(null);
-  const processedProductRef = useRef<string | number | null>(null); // ✅ Cambiado a string | number | null
+  const processedProductRef = useRef<string | number | null>(null);
   const isShowingFeedback = useRef(false);
 
   // Resetear al estado idle después de mostrar feedback
@@ -103,6 +104,19 @@ export default function ProductSearchByCode({
     if (isError) {
       isShowingFeedback.current = true;
       setScannerState({ type: 'error', reason: 'not_found' });
+      
+      // Toast de error de red
+      toast.error(
+        <div className="flex flex-col gap-1">
+          <p className="text-lg font-bold">Producto no encontrado</p>
+          <p className="text-sm">Intenta nuevamente o Verifique que hay stock en este punto de venta</p>
+        </div>,
+        {
+          duration: 1000,
+          className: "text-base p-4",
+        }
+      );
+      
       onChange('');
       resetToIdle();
       return;
@@ -112,6 +126,19 @@ export default function ProductSearchByCode({
     if (searchResults.length === 0) {
       isShowingFeedback.current = true;
       setScannerState({ type: 'error', reason: 'not_found' });
+      
+      // Toast de producto no encontrado
+      toast.error(
+        <div className="flex flex-col gap-1">
+          <p className="text-lg font-bold">Producto no encontrado</p>
+          <p className="text-sm">Verifica el código</p>
+        </div>,
+        {
+          duration: 500,
+          className: "text-base p-4",
+        }
+      );
+      
       onChange('');
       resetToIdle();
       return;
@@ -129,6 +156,19 @@ export default function ProductSearchByCode({
     if (product.stock <= 0) {
       isShowingFeedback.current = true;
       setScannerState({ type: 'error', reason: 'no_stock' });
+      
+      // Toast de error sin stock
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-bold">Sin stock disponible</p>
+          <p className="text-base">{product.name}</p>
+        </div>,
+        {
+          duration: 500,
+          className: "text-base p-4",
+        }
+      );
+      
       onChange('');
       resetToIdle();
       return;
@@ -138,6 +178,19 @@ export default function ProductSearchByCode({
     if (isProductAlreadySelected(product)) {
       isShowingFeedback.current = true;
       setScannerState({ type: 'duplicate', productName: product.name });
+      
+      // Toast de duplicado
+      toast.warning(
+        <div className="flex flex-col gap-2">
+          <p className="text-lg font-bold">Ya está en la lista</p>
+          <p className="text-base">{product.name}</p>
+        </div>,
+        {
+          duration: 500,
+          className: "text-base p-4",
+        }
+      );
+      
       onChange('');
       resetToIdle();
       return;
@@ -146,9 +199,29 @@ export default function ProductSearchByCode({
     // Marcar como procesado ANTES de agregar
     processedProductRef.current = product.id;
 
-    // Éxito
+    // Éxito - Mostrar toast con Sonner
     isShowingFeedback.current = true;
     setScannerState({ type: 'success', productName: product.name });
+    
+    // Toast grande con Sonner
+    toast.success(
+      <div className="flex flex-col gap-2">
+        <p className="text-xl font-bold">{product.name}</p>
+        <p className="text-3xl font-bold text-emerald-600">
+          ${product.price.toFixed(2)}
+        </p>
+        {product.stock && (
+          <p className="text-sm text-muted-foreground">
+            Stock: {product.stock} unidades
+          </p>
+        )}
+      </div>,
+      {
+        duration: 2000,
+        className: "text-lg p-6",
+      }
+    );
+
     onProductSelect(product);
     onChange('');
     resetToIdle();

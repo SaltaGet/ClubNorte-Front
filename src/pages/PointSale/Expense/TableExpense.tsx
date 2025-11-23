@@ -212,7 +212,7 @@ const TableExpenses = () => {
   const promedioGasto = expensesData.expenses && expensesData.expenses.length > 0 ? totalGeneral / expensesData.expenses.length : 0;
 
   return (
-    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen">
+    <div className="flex flex-col items-center w-full p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 h-full">
       <div className="w-full max-w-7xl space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

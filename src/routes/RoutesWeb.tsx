@@ -11,14 +11,17 @@ import StockControlReport from "@/pages/Reports/ReportFor/StockControlReport";
 import StockMovementsReport from "@/pages/Reports/ReportFor/StockMovementsReport";
 import Reports from "@/pages/Reports/Reports";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { Toaster } from "sonner";
 
 const Layout = () => (
   <>
     <Header />
     <Outlet />
     <Footer />
+    <Toaster position="top-center" />
   </>
 );
+
 const routers = createBrowserRouter([
   {
     element: <Layout />,
@@ -65,7 +68,6 @@ const routers = createBrowserRouter([
         path: "reports/descargar-informe",
         element: <DownloadReports/>,
       },
-      
     ],
   },
 ]);
