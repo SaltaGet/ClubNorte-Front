@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Package, Warehouse, ArrowRight, ChevronLeft, Zap, BarChart3 } from "lucide-react";
 import type { MovementStockCreateData } from "@/hooks/admin/MovementStock/movementStockType";
+import type { MovementStockBulkData } from "@/hooks/admin/MovementStock/useMovementStockMutations";
 
 // Tipos locales para este componente
 interface StockPointSale {
@@ -34,6 +35,8 @@ interface DepositToPointSaleProps {
   pointSales: PointSale[];
   isCreating: boolean;
   createMovementStock: (data: MovementStockCreateData, options?: MovementStockOptions) => void;
+  createMovementStockBulk: (data: MovementStockBulkData[]) => void;
+  isCreatingBulk: boolean;
   onBack: () => void;
   onSuccess: () => void;
 }
@@ -42,9 +45,9 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
   product,
   pointSales,
   isCreating,
-  createMovementStock,
+  createMovementStockBulk,
+  isCreatingBulk,
   onBack,
-  onSuccess
 }) => {
   const [selectedPoints, setSelectedPoints] = useState<{ id: number; amount: number }[]>([]);
   const [ignoreStockDeposit, setIgnoreStockDeposit] = useState(false);
@@ -98,23 +101,26 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
       return;
     }
 
-    for (const point of selectedPoints) {
-      if (point.amount > 0) {
-        createMovementStock({
-          amount: point.amount,
-          from_id: 1,
-          from_type: "deposit",
-          ignore_stock: ignoreStockDeposit,
-          product_id: product.id,
-          to_id: point.id,
-          to_type: "point_sale",
-        }, {
-          onSuccess: () => {
-            onSuccess();
-          }
-        });
-      }
-    }
+    // Filtrar solo los puntos con cantidad > 0
+    const validMovements = selectedPoints.filter(point => point.amount > 0);
+
+    if (validMovements.length === 0) return;
+
+    // Preparar la estructura que espera el endpoint bulk
+    const bulkData: MovementStockBulkData[] = [{
+      product_id: product.id,
+      movement_stock_item: validMovements.map(point => ({
+        amount: point.amount,
+        from_id: 1,
+        from_type: "deposit" as const,
+        ignore_stock: ignoreStockDeposit,
+        to_id: point.id,
+        to_type: "point_sale" as const,
+      }))
+    }];
+
+    // Enviar todos los movimientos de una sola vez
+    createMovementStockBulk(bulkData);
   };
 
   const getStockForPointSale = (pointSaleId: number): number => {
@@ -123,6 +129,7 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
 
   const totalAssigned = selectedPoints.reduce((sum, p) => sum + p.amount, 0);
   const hasSelections = selectedPoints.length > 0;
+  const isProcessing = isCreating || isCreatingBulk;
 
   return (
     <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -173,7 +180,7 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
           </p>
           <button
             onClick={distributeEqually}
-            disabled={isCreating}
+            disabled={isProcessing}
             className="w-full py-2 sm:py-3 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 rounded-lg font-medium text-sm sm:text-base disabled:opacity-50 flex items-center justify-center gap-2 transition active:scale-95"
           >
             <BarChart3 className="w-4 h-4" />
@@ -204,7 +211,7 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => handleCheckboxChange(point.id)}
-                    disabled={isCreating}
+                    disabled={isProcessing}
                     className="w-5 h-5 rounded mt-0.5 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -225,14 +232,14 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
                         type="number"
                         min={0}
                         className="flex-1 px-3 py-2 rounded-lg bg-slate-800 text-white border border-slate-600 disabled:opacity-50 font-medium text-sm sm:text-base"
-                        disabled={isCreating}
+                        disabled={isProcessing}
                         value={currentAmount || ""}
                         onChange={(e) => handleAmountChange(point.id, Number(e.target.value))}
                         placeholder="Cantidad"
                       />
                       <button
                         onClick={() => assignAllToOne(point.id)}
-                        disabled={isCreating}
+                        disabled={isProcessing}
                         className="px-3 sm:px-4 py-2 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-lg font-medium text-xs sm:text-sm disabled:opacity-50 transition active:scale-95 whitespace-nowrap"
                       >
                         Todo aquí
@@ -252,7 +259,7 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
           type="checkbox"
           checked={ignoreStockDeposit}
           onChange={(e) => setIgnoreStockDeposit(e.target.checked)}
-          disabled={isCreating}
+          disabled={isProcessing}
           className="w-5 h-5 rounded mt-0.5 flex-shrink-0"
         />
         <label className="text-amber-300 text-xs sm:text-sm">
@@ -263,11 +270,11 @@ const DepositToPointSale: React.FC<DepositToPointSaleProps> = ({
       {/* Botón de mover */}
       <button
         onClick={handleMoveFromDeposit}
-        disabled={isCreating || !hasSelections}
+        disabled={isProcessing || !hasSelections}
         className="w-full py-3 sm:py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-sm sm:text-lg disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95"
       >
         <Warehouse className="w-5 h-5 sm:w-6 sm:h-6" />
-        {isCreating ? "Procesando..." : "Mover desde Depósito"}
+        {isProcessing ? "Procesando..." : "Mover desde Depósito"}
         <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
     </div>
