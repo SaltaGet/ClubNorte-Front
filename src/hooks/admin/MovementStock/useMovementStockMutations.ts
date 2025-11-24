@@ -20,7 +20,22 @@ interface ApiSuccessResponse<T> {
   message: string;
 }
 
-// Función para crear movimiento de stock
+// Estructura que espera el endpoint bulk
+interface MovementStockBulkItem {
+  amount: number;
+  from_id: number;
+  from_type: "deposit" | "point_sale";
+  ignore_stock: boolean;
+  to_id: number;
+  to_type: "deposit" | "point_sale";
+}
+
+interface MovementStockBulkData {
+  product_id: number;
+  movement_stock_item: MovementStockBulkItem[];
+}
+
+// Función para crear movimiento de stock (INDIVIDUAL)
 const createMovementStock = async (
   formData: MovementStockCreateData
 ): Promise<ApiSuccessResponse<string>> => {
@@ -32,7 +47,19 @@ const createMovementStock = async (
   return data;
 };
 
-// Función para actualizar stock en deposito
+// NUEVO: Función para crear movimientos de stock en BULK
+const createMovementStockBulk = async (
+  formDataList: MovementStockBulkData[]
+): Promise<ApiSuccessResponse<string>> => {
+  const { data } = await apiClubNorte.post(
+    "/api/v1/movement_stock/move_list",
+    formDataList,
+    { withCredentials: true }
+  );
+  return data;
+};
+
+// Función para actualizar stock en deposito (INDIVIDUAL)
 const updateStockDeposit = async (
   formData: UpdateStockDepositData
 ): Promise<ApiSuccessResponse<string>> => {
@@ -44,10 +71,22 @@ const updateStockDeposit = async (
   return data;
 };
 
+// Función para actualizar stock en deposito (BULK)
+const updateStockDepositBulk = async (
+  formDataList: UpdateStockDepositData[]
+): Promise<ApiSuccessResponse<string>> => {
+  const { data } = await apiClubNorte.put(
+    "/api/v1/deposit/update_stock_bulk",
+    formDataList,
+    { withCredentials: true }
+  );
+  return data;
+};
+
 export const useMovementStockMutations = () => {
   const invalidateQueries = useInvalidateQueries();
 
-  // Mutación para crear movimiento
+  // Mutación para crear movimiento (INDIVIDUAL)
   const createMutation = useMutation({
     mutationFn: createMovementStock,
     onSuccess: async (data) => {
@@ -61,7 +100,21 @@ export const useMovementStockMutations = () => {
     },
   });
 
-  // Mutación para actualizar stock en deposito
+  // NUEVA: Mutación para crear movimientos (BULK)
+  const createBulkMutation = useMutation({
+    mutationFn: createMovementStockBulk,
+    onSuccess: async (data) => {
+      await invalidateQueries(QUERIES_TO_INVALIDATE);
+      console.log("Movimientos de stock creados (bulk):", data);
+    },
+    onError: (error) => {
+      const apiError = getApiError(error);
+      const errorMessage = apiError?.message || "Error desconocido";
+      console.error("Error al crear movimientos de stock (bulk):", errorMessage);
+    },
+  });
+
+  // Mutación para actualizar stock en deposito (INDIVIDUAL)
   const updateStockMutation = useMutation({
     mutationFn: updateStockDeposit,
     onSuccess: async (data) => {
@@ -75,33 +128,54 @@ export const useMovementStockMutations = () => {
     },
   });
 
+  // Mutación para actualizar stock en deposito (BULK)
+  const updateStockBulkMutation = useMutation({
+    mutationFn: updateStockDepositBulk,
+    onSuccess: async (data) => {
+      await invalidateQueries(QUERIES_TO_INVALIDATE);
+      console.log("Stock de deposito actualizado (bulk):", data);
+    },
+    onError: (error) => {
+      const apiError = getApiError(error);
+      const errorMessage = apiError?.message || "Error desconocido";
+      console.error("Error al actualizar stock de deposito (bulk):", errorMessage);
+    },
+  });
+
   return {
-    // ===== Crear Movimiento =====
-    // Función de mutación
+    // ===== Crear Movimiento (Individual) =====
     createMovementStock: createMutation.mutate,
-    // Estado de loading
     isCreating: createMutation.isPending,
-    // Estado de éxito
     isCreated: createMutation.isSuccess,
-    // Error
     createError: createMutation.error,
-    // Función de reset
     resetCreateState: createMutation.reset,
-    // Mutación completa
     createMutation,
 
-    // ===== Actualizar Stock Deposito =====
-    // Función de mutación
+    // ===== NUEVO: Crear Movimientos (Bulk) =====
+    createMovementStockBulk: createBulkMutation.mutate,
+    isCreatingBulk: createBulkMutation.isPending,
+    isCreatedBulk: createBulkMutation.isSuccess,
+    createBulkError: createBulkMutation.error,
+    resetCreateBulkState: createBulkMutation.reset,
+    createBulkMutation,
+
+    // ===== Actualizar Stock Deposito (Individual) =====
     updateStockDeposit: updateStockMutation.mutate,
-    // Estado de loading
     isUpdatingStock: updateStockMutation.isPending,
-    // Estado de éxito
     isStockUpdated: updateStockMutation.isSuccess,
-    // Error
     updateStockError: updateStockMutation.error,
-    // Función de reset
     resetUpdateStockState: updateStockMutation.reset,
-    // Mutación completa
     updateStockMutation,
+
+    // ===== Actualizar Stock Deposito (Bulk) =====
+    updateStockDepositBulk: updateStockBulkMutation.mutate,
+    isUpdatingStockBulk: updateStockBulkMutation.isPending,
+    isStockUpdatedBulk: updateStockBulkMutation.isSuccess,
+    updateStockBulkError: updateStockBulkMutation.error,
+    resetUpdateStockBulkState: updateStockBulkMutation.reset,
+    updateStockBulkMutation,
   };
 };
+
+// Exportar los tipos para usar en los componentes
+export type { MovementStockBulkData, MovementStockBulkItem };

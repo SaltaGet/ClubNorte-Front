@@ -4,13 +4,15 @@ import {
   History,
   ShoppingCart,
   FileText,
-  ChevronLeft
+  ChevronLeft,
+  Boxes
 } from "lucide-react";
 
 import TableMovements from "./MovementStock/TableMovements";
 import FormCreateExpenseBuy from "./MovementStock/FormCreateExpenseBuy";
 import TableExpenseBuys from "./MovementStock/TableExpenseBuys";
 import TableReponerStock from "./MovementStock/table/TableReponerStock";
+import BulkMovementTable from "./MovementStock/table/bulk/BulkMovementTable";
 
 interface SectionLayoutProps {
   title: string;
@@ -54,6 +56,7 @@ const MovementStockAdmin = () => {
   const [activeView, setActiveView] = useState<
     | "selection"
     | "administrar"
+    | "masivos"
     | "historial"
     | "compras"
     | "historial-compras"
@@ -86,7 +89,7 @@ const MovementStockAdmin = () => {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
               {/* Administrar Stock */}
               <button
@@ -107,6 +110,30 @@ const MovementStockAdmin = () => {
                     </h4>
                     <p className="text-slate-400 text-xs sm:text-sm">
                       Mover inventario entre ubicaciones
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* NUEVO: Movimientos Masivos */}
+              <button
+                onClick={() => setActiveView("masivos")}
+                className="group relative overflow-hidden rounded-xl border-2 border-slate-700 bg-slate-800/80 p-6 sm:p-8 hover:border-purple-500 transition-all duration-300 shadow-xl hover:shadow-purple-500/20"
+              >
+                <div className="flex flex-col items-center gap-3 sm:gap-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-purple-500/10 rounded-full blur-md"></div>
+                    <div className="relative bg-purple-600 rounded-full p-4 sm:p-5 group-hover:scale-110 transition-transform duration-300">
+                      <Boxes className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <h4 className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">
+                      Movimientos Masivos
+                    </h4>
+                    <p className="text-slate-400 text-xs sm:text-sm">
+                      Distribuir stock a múltiples puntos
                     </p>
                   </div>
                 </div>
@@ -213,6 +240,18 @@ const MovementStockAdmin = () => {
           onBack={handleBack}
         >
           <TableReponerStock />
+        </SectionLayout>
+      )}
+
+      {/* NUEVO: MOVIMIENTOS MASIVOS */}
+      {activeView === "masivos" && (
+        <SectionLayout
+          title="Movimientos Masivos"
+          description="Distribuye stock desde depósito a múltiples puntos de venta"
+          icon={<Boxes className="w-6 h-6 text-white" />}
+          onBack={handleBack}
+        >
+          <BulkMovementTable />
         </SectionLayout>
       )}
 

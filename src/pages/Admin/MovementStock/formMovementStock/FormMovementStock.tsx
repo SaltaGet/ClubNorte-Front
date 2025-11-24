@@ -29,7 +29,17 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
     isCreating,
     isCreated,
     createError,
-    resetCreateState
+    resetCreateState,
+    // Bulk para movimientos
+    createMovementStockBulk,
+    isCreatingBulk,
+    isCreatedBulk,
+    createBulkError,
+    resetCreateBulkState,
+    // Bulk para actualizar stock deposito
+    isStockUpdatedBulk,
+    updateStockBulkError,
+    resetUpdateStockBulkState
   } = useMovementStockMutations();
 
   const role = useUserStore((state) => state.getUserRole());
@@ -39,13 +49,15 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
 
   const [activeMethod, setActiveMethod] = useState<ActiveMethod>("selection");
 
-  const mutationApiError = getApiError(createError);
+  // Combinar errores de todas las mutaciones
+  const mutationApiError = getApiError(createError) || getApiError(createBulkError) || getApiError(updateStockBulkError);
 
   const resetAllStates = () => {
     setActiveMethod("selection");
   };
 
-  if (isCreated) {
+  // Mostrar success si cualquiera de las mutaciones fue exitosa
+  if (isCreated || isCreatedBulk || isStockUpdatedBulk) {
     return (
       <SuccessMessage
         title="¡Movimiento Realizado!"
@@ -54,6 +66,8 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
           text: "Realizar Otro Movimiento",
           onClick: () => {
             resetCreateState();
+            resetCreateBulkState();
+            resetUpdateStockBulkState();
             resetAllStates();
           },
           variant: 'indigo'
@@ -62,6 +76,7 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
     );
   }
 
+  // Mostrar loading si cualquiera está cargando
   if (isLoadingPoints || isLoadingProduct) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -100,7 +115,11 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
               </p>
               <button
                 type="button"
-                onClick={() => resetCreateState()}
+                onClick={() => {
+                  resetCreateState();
+                  resetCreateBulkState();
+                  resetUpdateStockBulkState();
+                }}
                 className="text-xs text-red-400 hover:text-red-300 underline underline-offset-2 transition-colors"
               >
                 Cerrar mensaje
@@ -276,6 +295,8 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
           pointSales={pointSales}
           isCreating={isCreating}
           createMovementStock={createMovementStock}
+          createMovementStockBulk={createMovementStockBulk}
+          isCreatingBulk={isCreatingBulk}
           onBack={() => setActiveMethod("selection")}
           onSuccess={resetAllStates}
         />
@@ -288,6 +309,8 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
           pointSales={pointSales}
           isCreating={isCreating}
           createMovementStock={createMovementStock}
+          createMovementStockBulk={createMovementStockBulk}
+          isCreatingBulk={isCreatingBulk}
           onBack={() => setActiveMethod("selection")}
           onSuccess={resetAllStates}
         />
@@ -304,4 +327,4 @@ const FormMovementStock: React.FC<FormMovementStockProps> = ({ productId }) => {
   );
 };
 
-export default FormMovementStock
+export default FormMovementStock;

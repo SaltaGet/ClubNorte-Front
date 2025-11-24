@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Package, Store, ArrowRight, ArrowLeftRight, ChevronLeft, Zap } from "lucide-react";
 import type { MovementStockCreateData } from "@/hooks/admin/MovementStock/movementStockType";
+import type { MovementStockBulkData } from "@/hooks/admin/MovementStock/useMovementStockMutations";
 
 // Tipos locales para este componente
 interface StockPointSale {
@@ -34,6 +35,8 @@ interface PointSaleToPointSaleProps {
   pointSales: PointSale[];
   isCreating: boolean;
   createMovementStock: (data: MovementStockCreateData, options?: MovementStockOptions) => void;
+  createMovementStockBulk: (data: MovementStockBulkData[]) => void;
+  isCreatingBulk: boolean;
   onBack: () => void;
   onSuccess: () => void;
 }
@@ -42,9 +45,9 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
   product,
   pointSales,
   isCreating,
-  createMovementStock,
+  createMovementStockBulk,
+  isCreatingBulk,
   onBack,
-  onSuccess
 }) => {
   const [fromPointId, setFromPointId] = useState<number | "">("");
   const [toPointId, setToPointId] = useState<number | "">("");
@@ -75,19 +78,21 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
       return;
     }
 
-    createMovementStock({
-      amount: moveAmount,
-      from_id: fromPointId,
-      from_type: "point_sale",
-      ignore_stock: ignoreStockPoints,
+    // Preparar la estructura que espera el endpoint bulk
+    const bulkData: MovementStockBulkData[] = [{
       product_id: product.id,
-      to_id: toPointId === 0 ? 1 : toPointId,
-      to_type: toPointId === 0 ? "deposit" : "point_sale",
-    }, {
-      onSuccess: () => {
-        onSuccess();
-      }
-    });
+      movement_stock_item: [{
+        amount: moveAmount,
+        from_id: fromPointId,
+        from_type: "point_sale" as const,
+        ignore_stock: ignoreStockPoints,
+        to_id: toPointId === 0 ? 1 : toPointId,
+        to_type: toPointId === 0 ? "deposit" : "point_sale" as const,
+      }]
+    }];
+
+    // Enviar como array (bulk) aunque sea un solo elemento
+    createMovementStockBulk(bulkData);
   };
 
   const getStockForPointSale = (pointSaleId: number): number => {
@@ -109,6 +114,7 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
 
   const hasError = moveAmount > originStock && !ignoreStockPoints;
   const isFormValid = fromPointId && toPointId !== "" && moveAmount > 0 && fromPointId !== toPointId;
+  const isProcessing = isCreating || isCreatingBulk;
 
   return (
     <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 sm:p-6 space-y-4 sm:space-y-6">
@@ -146,7 +152,7 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
               setFromPointId(Number(e.target.value));
               setMoveAmount(0); // Reset amount when changing origin
             }}
-            disabled={isCreating}
+            disabled={isProcessing}
           >
             <option value="">Seleccione punto de origen</option>
             {product?.stock_point_sales?.map((ps) => (
@@ -178,7 +184,7 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
             className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-slate-700 text-white border border-slate-600 disabled:opacity-50 font-medium text-sm sm:text-base"
             value={toPointId}
             onChange={(e) => setToPointId(Number(e.target.value))}
-            disabled={isCreating}
+            disabled={isProcessing}
           >
             <option value="">Seleccione punto de destino</option>
             <option value={0}>
@@ -213,14 +219,14 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
                   ? 'border-red-500 bg-red-900/20' 
                   : 'border-slate-600'
               }`}
-              disabled={isCreating || !fromPointId}
+              disabled={isProcessing || !fromPointId}
               placeholder="0"
             />
             {fromPointId && originStock > 0 && (
               <button
                 type="button"
                 onClick={transferAll}
-                disabled={isCreating}
+                disabled={isProcessing}
                 className="px-3 sm:px-4 py-2 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-lg font-medium text-xs sm:text-sm disabled:opacity-50 transition active:scale-95 whitespace-nowrap flex items-center gap-1"
               >
                 <Zap className="w-4 h-4" />
@@ -246,7 +252,7 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
             type="checkbox"
             checked={ignoreStockPoints}
             onChange={(e) => setIgnoreStockPoints(e.target.checked)}
-            disabled={isCreating}
+            disabled={isProcessing}
             className="w-5 h-5 rounded mt-0.5 flex-shrink-0"
           />
           <label className="text-amber-300 text-xs sm:text-sm">
@@ -279,11 +285,11 @@ const PointSaleToPointSale: React.FC<PointSaleToPointSaleProps> = ({
       {/* Botón de transferir */}
       <button
         onClick={handleMoveBetweenPoints}
-        disabled={isCreating || !isFormValid}
+        disabled={isProcessing || !isFormValid}
         className="w-full py-3 sm:py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-sm sm:text-lg disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3 shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95"
       >
         <ArrowLeftRight className="w-5 h-5 sm:w-6 sm:h-6" />
-        {isCreating ? "Procesando..." : "Realizar Transferencia"}
+        {isProcessing ? "Procesando..." : "Realizar Transferencia"}
         <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
     </div>
