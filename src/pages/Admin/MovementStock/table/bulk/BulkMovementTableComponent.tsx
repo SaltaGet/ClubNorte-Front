@@ -60,8 +60,8 @@ const BulkMovementTableComponent = ({
 
   return (
     <>
-      {/* Vista Cards para móvil y tablet (< lg) */}
-      <div className="lg:hidden space-y-3">
+     {/* Vista Cards para móvil y tablet (< lg) */}
+      <div className="lg:hidden space-y-4">
         {products.map((product) => {
           const movements = productMovements[product.id] || {};
           const depositStock = getDepositStock(product);
@@ -72,57 +72,64 @@ const BulkMovementTableComponent = ({
           return (
             <div
               key={product.id}
-              className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden"
+              className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg"
             >
-              {/* Header del producto */}
-              <div className="bg-slate-900 p-4 border-b border-slate-700">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <Package className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-1" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-white font-semibold text-base break-words">
-                        {product.name}
-                      </h3>
-                      <p className="text-slate-400 text-sm">{product.code}</p>
-                    </div>
+              {/* Header del producto - Mejorado */}
+              <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-3 sm:p-4 border-b border-slate-700">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-indigo-500/20 rounded-lg">
+                    <Package className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      className={`font-bold text-sm flex-shrink-0 ${
-                        depositStock > 0
-                          ? "bg-emerald-600 hover:bg-emerald-600 text-white"
-                          : "bg-red-600 hover:bg-red-600 text-white"
-                      }`}
-                    >
-                      Stock: {depositStock}
-                    </Badge>
-                    <button
-                      onClick={() => handleOpenModal(product)}
-                      className="p-2 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 transition-colors"
-                      title="Actualizar stock manualmente"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-white font-semibold text-sm sm:text-base leading-tight mb-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-slate-400 text-xs sm:text-sm">
+                      {product.code}
+                    </p>
                   </div>
                 </div>
 
-                {/* Botón distribuir */}
-                <Button
-                  onClick={() => distributeEqually(product.id)}
-                  disabled={
-                    isCreatingBulk || (depositStock <= 0 && !ignoreStock)
-                  }
-                  size="sm"
-                  className="w-full mt-3 text-sm bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
-                >
-                  <Divide className="w-4 h-4 mr-2" />
-                  Distribuir
-                </Button>
+                {/* Stock y acciones en fila */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-xs text-slate-400 whitespace-nowrap">
+                      Stock Depósito:
+                    </span>
+                    <Badge
+                      className={`font-bold text-xs sm:text-sm ${
+                        depositStock > 0
+                          ? "bg-emerald-600 hover:bg-emerald-600"
+                          : "bg-red-600 hover:bg-red-600"
+                      }`}
+                    >
+                      {depositStock}
+                    </Badge>
+                  </div>
+                  <button
+                    onClick={() => handleOpenModal(product)}
+                    className="p-2 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 transition-all active:scale-95"
+                    title="Editar stock"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <Button
+                    onClick={() => distributeEqually(product.id)}
+                    disabled={
+                      isCreatingBulk || (depositStock <= 0 && !ignoreStock)
+                    }
+                    size="sm"
+                    className="h-9 px-3 text-xs bg-slate-700 hover:bg-slate-600 border border-slate-600"
+                  >
+                    <Divide className="w-3.5 h-3.5 mr-1.5" />
+                    Distribuir
+                  </Button>
+                </div>
               </div>
 
-              {/* Lista de puntos de venta - Grid */}
-              <div className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {/* Lista de puntos de venta - Grid optimizado */}
+              <div className="p-3 sm:p-4 bg-slate-900/30">
+                <div className="grid gap-3 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3">
                   {pointSalesList.map((pointSale) => {
                     const amount = movements[pointSale.id] || 0;
                     const currentStock = getPointSaleStock(
@@ -133,23 +140,27 @@ const BulkMovementTableComponent = ({
                     return (
                       <div
                         key={pointSale.id}
-                        className="bg-slate-900/50 rounded-lg p-3 border border-slate-700"
+                        className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-indigo-500/50 transition-colors"
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Store className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <span className="text-white font-medium text-sm block truncate">
+                        {/* Header del punto de venta */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-indigo-500/20 rounded">
+                            <Store className="w-3.5 h-3.5 text-indigo-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-medium text-sm leading-tight truncate">
                               {pointSale.name}
-                            </span>
-                            <span className="text-xs text-slate-400">
+                            </p>
+                            <p className="text-xs text-slate-400 mt-0.5">
                               Stock:{" "}
                               <span className="text-emerald-400 font-semibold">
                                 {currentStock}
                               </span>
-                            </span>
+                            </p>
                           </div>
                         </div>
 
+                        {/* Input y botón */}
                         <div className="space-y-2">
                           <NumericFormat
                             value={amount || ""}
@@ -165,7 +176,7 @@ const BulkMovementTableComponent = ({
                             allowNegative={false}
                             placeholder="0"
                             disabled={isCreatingBulk}
-                            className="w-full h-10 text-sm bg-slate-900 border border-slate-600 text-white text-center rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full h-11 text-base sm:text-sm bg-slate-900 border-2 border-slate-600 text-white text-center rounded-lg px-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"
                           />
                           <Button
                             onClick={() =>
@@ -176,7 +187,7 @@ const BulkMovementTableComponent = ({
                               (depositStock <= 0 && !ignoreStock)
                             }
                             size="sm"
-                            className="w-full h-9 text-xs bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30"
+                            className="w-full h-9 text-xs bg-indigo-600 hover:bg-indigo-700 text-white border-0 active:scale-95 transition-all"
                           >
                             <Zap className="w-3 h-3 mr-1" />
                             Asignar todo
@@ -188,32 +199,37 @@ const BulkMovementTableComponent = ({
                 </div>
               </div>
 
-              {/* Footer con total */}
+              {/* Footer con total - Mejorado */}
               {totalToMove > 0 && (
-                <div className="bg-slate-900 p-4 border-t border-slate-700">
-                  <div className="flex items-center justify-between">
+                <div className="bg-slate-900 px-3 sm:px-4 py-3 border-t border-slate-700">
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-slate-300 text-sm font-medium">
                       Total a mover:
                     </span>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <Badge
-                        className={`font-bold ${
+                        className={`font-bold text-sm ${
                           hasError
-                            ? "bg-red-600 hover:bg-red-600 text-white"
-                            : "bg-indigo-600 hover:bg-indigo-600 text-white"
+                            ? "bg-red-600 hover:bg-red-600"
+                            : "bg-indigo-600 hover:bg-indigo-600"
                         }`}
                       >
                         {totalToMove}
                       </Badge>
-                      <span
-                        className={`text-sm font-semibold ${
-                          remainingStock < 0
-                            ? "text-red-400"
-                            : "text-emerald-400"
-                        }`}
-                      >
-                        Resta: {remainingStock}
-                      </span>
+                      <div className="text-right">
+                        <span className="text-xs text-slate-400 block">
+                          Resta:
+                        </span>
+                        <span
+                          className={`text-sm font-bold ${
+                            remainingStock < 0
+                              ? "text-red-400"
+                              : "text-emerald-400"
+                          }`}
+                        >
+                          {remainingStock}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -221,190 +237,6 @@ const BulkMovementTableComponent = ({
             </div>
           );
         })}
-      </div>
-
-      {/* Tabla para desktop (>= lg) */}
-      <div className="hidden lg:block bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-slate-900">
-              <tr>
-                <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase sticky left-0 bg-slate-900 z-10">
-                  Producto
-                </th>
-                <th className="px-3 md:px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase">
-                  Stock Depósito
-                </th>
-                <th className="px-3 md:px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase">
-                  Acciones Rápidas
-                </th>
-                {pointSalesList.map((ps) => (
-                  <th
-                    key={ps.id}
-                    className="px-3 md:px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase min-w-[140px]"
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      <Store className="w-3 h-3" />
-                      <span className="truncate max-w-[100px]">{ps.name}</span>
-                    </div>
-                  </th>
-                ))}
-                <th className="px-3 md:px-4 py-3 text-center text-xs font-semibold text-slate-400 uppercase">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {products.map((product) => {
-                const movements = productMovements[product.id] || {};
-                const depositStock = getDepositStock(product);
-                const totalToMove = getTotalMovements(product.id);
-                const hasError = totalToMove > depositStock && !ignoreStock;
-                const remainingStock = depositStock - totalToMove;
-
-                return (
-                  <tr
-                    key={product.id}
-                    className="hover:bg-slate-700/50 transition"
-                  >
-                    {/* Producto */}
-                    <td className="px-3 md:px-4 py-3 sticky left-0 bg-slate-800 z-10">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-white font-medium text-sm truncate max-w-[150px]">
-                            {product.name}
-                          </p>
-                          <p className="text-slate-400 text-xs">
-                            {product.code}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleOpenModal(product)}
-                          className="px-2 py-1 text-xs rounded-md bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 transition-colors flex-shrink-0 font-medium"
-                          title="Editar stock de depósito"
-                        >
-                          Depósito
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Stock Depósito */}
-                    <td className="px-3 md:px-4 py-3 text-center">
-                      <Badge
-                        className={`font-bold text-sm ${
-                          depositStock > 0
-                            ? "bg-emerald-600 hover:bg-emerald-600 text-white"
-                            : "bg-red-600 hover:bg-red-600 text-white"
-                        }`}
-                      >
-                        {depositStock}
-                      </Badge>
-                    </td>
-
-                    {/* Acciones Rápidas */}
-                    <td className="px-3 md:px-4 py-3">
-                      <Button
-                        onClick={() => distributeEqually(product.id)}
-                        disabled={
-                          isCreatingBulk ||
-                          (depositStock <= 0 && !ignoreStock)
-                        }
-                        size="sm"
-                        className="w-full min-w-[120px] text-xs bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
-                      >
-                        <Divide className="w-3 h-3 mr-1" />
-                        Distribuir
-                      </Button>
-                    </td>
-
-                    {/* Columna por cada punto de venta */}
-                    {pointSalesList.map((pointSale) => {
-                      const amount = movements[pointSale.id] || 0;
-                      const currentStock = getPointSaleStock(
-                        product,
-                        pointSale.id
-                      );
-
-                      return (
-                        <td key={pointSale.id} className="px-3 md:px-4 py-3">
-                          <div className="flex flex-col gap-1">
-                            {/* Stock actual del punto */}
-                            <div className="text-center mb-1">
-                              <span className="text-xs text-slate-400">
-                                Stock:{" "}
-                              </span>
-                              <span className="text-xs font-semibold text-emerald-400">
-                                {currentStock}
-                              </span>
-                            </div>
-
-                            <NumericFormat
-                              value={amount || ""}
-                              onValueChange={(values: NumberFormatValues) => {
-                                updateAmount(
-                                  product.id,
-                                  pointSale.id,
-                                  values.floatValue || 0
-                                );
-                              }}
-                              thousandSeparator={false}
-                              decimalScale={0}
-                              allowNegative={false}
-                              placeholder="0"
-                              disabled={isCreatingBulk}
-                              className="w-full h-8 text-sm bg-slate-900 border border-slate-600 text-white text-center rounded-md px-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            />
-                            <Button
-                              onClick={() =>
-                                assignAllToPoint(product.id, pointSale.id)
-                              }
-                              disabled={
-                                isCreatingBulk ||
-                                (depositStock <= 0 && !ignoreStock)
-                              }
-                              size="sm"
-                              className="w-full h-7 text-xs bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30"
-                            >
-                              <Zap className="w-3 h-3 mr-1" />
-                              Todo
-                            </Button>
-                          </div>
-                        </td>
-                      );
-                    })}
-
-                    {/* Total */}
-                    <td className="px-3 md:px-4 py-3 text-center">
-                      {totalToMove > 0 && (
-                        <div className="flex flex-col gap-1">
-                          <Badge
-                            className={`font-bold ${
-                              hasError
-                                ? "bg-red-600 hover:bg-red-600 text-white"
-                                : "bg-indigo-600 hover:bg-indigo-600 text-white"
-                            }`}
-                          >
-                            {totalToMove}
-                          </Badge>
-                          <span
-                            className={`text-xs font-semibold ${
-                              remainingStock < 0
-                                ? "text-red-400"
-                                : "text-emerald-400"
-                            }`}
-                          >
-                            Resta: {remainingStock}
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </div>
     </>
   );

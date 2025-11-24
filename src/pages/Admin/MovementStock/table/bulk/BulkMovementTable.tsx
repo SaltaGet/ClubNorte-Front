@@ -278,17 +278,17 @@ const BulkMovementTable = () => {
   return (
     <div className="space-y-4 md:space-y-6 pb-32 md:pb-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 rounded-xl p-4 md:p-6 border border-indigo-500/30">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2">
+      <div className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 rounded-xl p-3 sm:p-4 md:p-6 border border-indigo-500/30">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">
               Movimientos Masivos
             </h2>
-            <p className="text-slate-300 text-sm md:text-base">
-              Distribuye stock desde depósito a todos los puntos de venta
+            <p className="text-slate-300 text-xs sm:text-sm md:text-base leading-tight">
+              Distribuye stock desde depósito a puntos de venta
             </p>
           </div>
-          <Warehouse className="w-10 h-10 md:w-12 md:h-12 text-indigo-400" />
+          <Warehouse className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-indigo-400 flex-shrink-0" />
         </div>
       </div>
 
@@ -327,22 +327,22 @@ const BulkMovementTable = () => {
       )}
 
       {/* Footer con controles */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 p-4 md:p-6 space-y-4 fixed bottom-0 left-0 right-0 md:static shadow-2xl md:shadow-none z-20 mx-4 mb-4 md:mx-0 md:mb-0">
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 fixed bottom-0 left-0 right-0 md:static shadow-2xl md:shadow-none z-20 mx-2 mb-2 sm:mx-4 sm:mb-4 md:mx-0 md:mb-0">
         {/* Checkbox ignorar stock */}
-        <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 md:p-4">
+        <div className="flex items-start gap-2 sm:gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 sm:p-3 md:p-4">
           <input
             type="checkbox"
             id="ignore-stock"
             checked={ignoreStock}
             onChange={(e) => setIgnoreStock(e.target.checked)}
             disabled={isCreatingBulk}
-            className="w-4 h-4 md:w-5 md:h-5 rounded"
+            className="w-4 h-4 sm:w-5 sm:h-5 rounded mt-0.5 flex-shrink-0"
           />
           <label
             htmlFor="ignore-stock"
-            className="text-amber-300 text-xs md:text-sm cursor-pointer"
+            className="text-amber-300 text-xs sm:text-sm leading-tight cursor-pointer"
           >
-            Ignorar validación de stock (permitir stock negativo en depósito)
+            Ignorar validación de stock (permitir stock negativo)
           </label>
         </div>
 
@@ -350,13 +350,15 @@ const BulkMovementTable = () => {
         <Button
           onClick={handleExecuteBulk}
           disabled={isCreatingBulk || !hasValidMovements()}
-          className="w-full h-12 md:h-14 bg-indigo-600 hover:bg-indigo-500 text-white text-base md:text-lg font-bold shadow-lg hover:shadow-indigo-500/30 transition-all"
+          className="w-full h-11 sm:h-12 md:h-14 bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg hover:shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3"
         >
-          <Warehouse className="w-5 h-5 md:w-6 md:h-6 mr-2" />
-          {isCreatingBulk
-            ? "Procesando movimientos..."
-            : "Ejecutar Todos los Movimientos"}
-          <ArrowRight className="w-5 h-5 md:w-6 md:h-6 ml-2" />
+          <Warehouse className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="text-xs sm:text-sm md:text-base lg:text-lg truncate">
+            {isCreatingBulk
+              ? "Procesando..."
+              : "Ejecutar Movimientos"}
+          </span>
+          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ml-1.5 sm:ml-2 flex-shrink-0" />
         </Button>
       </div>
 
@@ -379,4 +381,4 @@ const BulkMovementTable = () => {
   );
 };
 
-export default BulkMovementTable;
+export default BulkMovementTable
