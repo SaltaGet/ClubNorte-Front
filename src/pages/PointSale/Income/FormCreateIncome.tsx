@@ -247,16 +247,17 @@ export default function FormCreateIncome() {
               )}
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-                {/* Layout Grid optimizado para tablets */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
-                  {/* Sidebar izquierdo - Pago y Total */}
-                  <div className="md:col-span-4 lg:col-span-3 space-y-4">
-                    {/* Método de pago compacto */}
+                {/* Layout Grid Inteligente y Responsivo */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+                  
+                  {/* Sidebar - Pago y Total */}
+                  <div className="lg:col-span-4 xl:col-span-3 space-y-4">
+                    {/* Método de pago */}
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-slate-200 mb-2">
                         Método de pago
                       </label>
-                      <div className="grid grid-cols-3 gap-1.5 bg-slate-800 rounded-lg p-1.5 border border-slate-700">
+                      <div className="grid grid-cols-3 gap-2 bg-slate-800 rounded-lg p-2 border border-slate-700">
                         {[
                           {
                             value: "efectivo",
@@ -285,15 +286,9 @@ export default function FormCreateIncome() {
                               className="sr-only peer"
                               disabled={isCreating}
                             />
-                            <div
-                              className="flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-md text-center transition-all 
-                            peer-checked:bg-indigo-600 peer-checked:text-white 
-                            text-slate-400 hover:text-slate-300 
-                            peer-checked:shadow-md peer-disabled:opacity-50 
-                            peer-disabled:cursor-not-allowed"
-                            >
-                              <Icon className="w-4 h-4" />
-                              <span className="font-medium text-[10px] sm:text-xs leading-tight">
+                            <div className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-md transition-all peer-checked:bg-indigo-600 peer-checked:text-white text-slate-400 hover:text-slate-300 peer-checked:shadow-lg peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
+                              <Icon className="w-5 h-5 flex-shrink-0" />
+                              <span className="font-medium text-[10px] leading-tight text-center break-words w-full">
                                 {label}
                               </span>
                             </div>
@@ -302,13 +297,13 @@ export default function FormCreateIncome() {
                       </div>
                     </div>
 
-                    {/* Total compacto */}
-                    <div className="bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 rounded-lg p-3 sm:p-4 border border-emerald-500/30">
+                    {/* Total */}
+                    <div className="bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 rounded-lg p-4 border border-emerald-500/30">
                       <div className="text-center">
-                        <div className="text-slate-300 text-xs mb-0.5">
+                        <div className="text-slate-300 text-xs mb-1">
                           Total a pagar
                         </div>
-                        <div className="text-6xl sm:text-3xl font-bold text-emerald-400">
+                        <div className="text-2xl sm:text-3xl font-bold text-emerald-400 break-words">
                           {new Intl.NumberFormat("es-AR", {
                             style: "currency",
                             currency: "ARS",
@@ -316,20 +311,19 @@ export default function FormCreateIncome() {
                             maximumFractionDigits: 0,
                           }).format(total)}
                         </div>
-
                         {fields.length > 0 && (
-                          <div className="text-slate-400 text-[10px] sm:text-xs mt-0.5">
+                          <div className="text-slate-400 text-xs mt-1">
                             {fields.length} producto{fields.length !== 1 ? 's' : ''}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Descripción compacta para tablet */}
+                    {/* Descripción compacta para tablet/móvil */}
                     {(isTablet || isMobile) && (
-                      <div className="pt-2">
+                      <div>
                         <details className="group">
-                          <summary className="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white transition-colors py-1.5">
+                          <summary className="flex items-center justify-between cursor-pointer text-slate-300 hover:text-white transition-colors py-2 px-1">
                             <span className="text-xs font-medium">
                               Descripción (opcional)
                             </span>
@@ -350,18 +344,18 @@ export default function FormCreateIncome() {
                       </div>
                     )}
 
-                    {/* Botón crear ingreso para móvil/tablet */}
+                    {/* Botón crear para móvil/tablet */}
                     {(isTablet || isMobile) && (
                       <button
                         type="submit"
                         disabled={fields.length === 0 || isCreating}
-                        className="w-full py-3 sm:py-3.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all shadow-lg disabled:opacity-60 text-sm sm:text-base"
+                        className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all shadow-lg disabled:opacity-60 text-sm"
                       >
                         {isCreating
                           ? "Creando..."
                           : fields.length === 0
                           ? "Agrega productos"
-                          : `Crear Ingreso • ${new Intl.NumberFormat("es-AR", {
+                          : `Crear • ${new Intl.NumberFormat("es-AR", {
                               style: "currency",
                               currency: "ARS",
                               minimumFractionDigits: 0,
@@ -372,7 +366,7 @@ export default function FormCreateIncome() {
                   </div>
 
                   {/* Área principal - Productos */}
-                  <div className="md:col-span-8 lg:col-span-9">
+                  <div className="lg:col-span-8 xl:col-span-9">
                     <label className="block text-xs sm:text-sm font-medium text-slate-200 mb-2">
                       Productos
                     </label>
@@ -408,7 +402,7 @@ export default function FormCreateIncome() {
                   </div>
                 </div>
 
-                {/* Botón desktop normal */}
+                {/* Botón desktop */}
                 {!isMobile && !isTablet && (
                   <div className="pt-6 border-t border-white/10">
                     <div className="flex gap-3">
