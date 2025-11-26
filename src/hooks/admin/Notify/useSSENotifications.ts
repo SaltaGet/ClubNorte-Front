@@ -28,7 +28,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
   const maxReconnectAttempts = 10;
   const reconnectDelayRef = useRef(1000);
 
-  // Función para generar un hash único del contenido del mensaje
   const generateMessageHash = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const content = {
       type: notification.type,
@@ -46,7 +45,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
     return JSON.stringify(content);
   }, []);
 
-  // Función para agregar o actualizar notificación
   const addOrUpdateNotification = useCallback((newNotification: Notification) => {
     const messageHash = generateMessageHash(newNotification);
     
@@ -77,7 +75,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
     });
   }, [generateMessageHash]);
 
-  // Limpiar timeout de reconexión
   const clearReconnectTimeout = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -85,11 +82,9 @@ export const useSSENotifications = (enabled: boolean = true) => {
     }
   }, []);
 
-  // Función de conexión mejorada
   const connect = useCallback(() => {
     if (!enabled) return;
 
-    // Limpiar conexión anterior si existe
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
@@ -97,7 +92,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
 
     clearReconnectTimeout();
 
-    // URL sin parámetros extra (alexandrevicenzi/go-sse no necesita cache busting)
     const sseUrl = `${import.meta.env.VITE_API_URL}api/v1/notification/alert`;
 
     try {
@@ -107,31 +101,19 @@ export const useSSENotifications = (enabled: boolean = true) => {
       });
       eventSourceRef.current = eventSource;
 
-      const connectionTimeout = setTimeout(() => {
-        if (eventSource.readyState !== EventSource.OPEN) {
-          console.log('Timeout de conexión SSE');
-          eventSource.close();
-        }
-      }, 10000);
-
       eventSource.onopen = () => {
         console.log('SSE conectado exitosamente');
-        clearTimeout(connectionTimeout);
         setIsConnected(true);
         setError(null);
-        
         reconnectAttemptsRef.current = 0;
         reconnectDelayRef.current = 1000;
       };
 
-      // alexandrevicenzi/go-sse usa 'message' como evento por defecto
-      // pero también puedes escuchar eventos personalizados
       eventSource.onmessage = (event) => {
         try {
           console.log('Mensaje SSE recibido:', event.data);
           const data = JSON.parse(event.data);
           
-          // Adaptar según la estructura que envía tu servidor Go
           const notification: Notification = {
             id: `${Date.now()}-${Math.random()}`,
             type: 'stock-alert',
@@ -147,7 +129,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
         }
       };
 
-      // También escuchar eventos con nombre específico (si tu servidor los envía)
       eventSource.addEventListener('stock-notification', (event) => {
         try {
           console.log('Evento stock-notification recibido:', event.data);
@@ -172,7 +153,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
 
       eventSource.onerror = (error) => {
         console.log('Error en conexión SSE:', error);
-        clearTimeout(connectionTimeout);
         setIsConnected(false);
         
         eventSource.close();
