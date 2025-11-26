@@ -6,20 +6,25 @@ export interface StockProduct {
   name: string;
   price: number;
   stock: number;
+  notifier: boolean;
   min_amount: number;
 }
 
-export interface Notification {
+export interface ProductNotification {
   id: string;
-  type: 'stock-alert';
-  message: string;
-  products: StockProduct[];
+  productId: number;
+  code: string;
+  name: string;
+  stock: number;
+  min_amount: number;
+  price: number;
   timestamp: string;
   read: boolean;
+  hasChanged: boolean; // Indica si hubo cambio en el stock
 }
 
 export const useSSENotifications = (enabled: boolean = true) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<ProductNotification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -28,52 +33,71 @@ export const useSSENotifications = (enabled: boolean = true) => {
   const maxReconnectAttempts = 10;
   const reconnectDelayRef = useRef(1000);
 
-  const generateMessageHash = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    const content = {
-      type: notification.type,
-      message: notification.message,
-      products: notification.products
-        ?.map(p => ({ 
-          id: p.id, 
-          code: p.code, 
-          name: p.name, 
-          stock: p.stock, 
-          min_amount: p.min_amount 
-        }))
-        .sort((a, b) => a.id - b.id)
-    };
-    return JSON.stringify(content);
-  }, []);
-
-  const addOrUpdateNotification = useCallback((newNotification: Notification) => {
-    const messageHash = generateMessageHash(newNotification);
-    
+  const processProductList = useCallback((products: StockProduct[], timestamp: string) => {
     setNotifications(prev => {
-      const existingIndex = prev.findIndex(notification => {
-        const existingHash = generateMessageHash(notification);
-        return existingHash === messageHash;
+      const updatedList = [...prev];
+      const processedProductIds = new Set<number>();
+
+      products.forEach(product => {
+        processedProductIds.add(product.id);
+        
+        // Buscar si el producto ya existe en las notificaciones
+        const existingIndex = updatedList.findIndex(n => n.productId === product.id);
+
+        if (existingIndex !== -1) {
+          // Producto existe, verificar si cambió el stock
+          const existing = updatedList[existingIndex];
+          const stockChanged = existing.stock !== product.stock;
+
+          if (stockChanged) {
+            // El stock cambió, reactivar la notificación
+            const updated: ProductNotification = {
+              ...existing,
+              stock: product.stock,
+              price: product.price,
+              min_amount: product.min_amount,
+              timestamp,
+              read: false, // Marcar como NO LEÍDA porque cambió
+              hasChanged: true
+            };
+
+            // Mover al inicio de la lista
+            updatedList.splice(existingIndex, 1);
+            updatedList.unshift(updated);
+          } else {
+            // El stock NO cambió, solo actualizar datos pero mantener estado de lectura
+            updatedList[existingIndex] = {
+              ...existing,
+              price: product.price,
+              min_amount: product.min_amount,
+              timestamp,
+              hasChanged: false
+            };
+          }
+        } else {
+          // Producto NUEVO, crear notificación
+          const newNotification: ProductNotification = {
+            id: `${product.id}-${timestamp}`,
+            productId: product.id,
+            code: product.code,
+            name: product.name,
+            stock: product.stock,
+            min_amount: product.min_amount,
+            price: product.price,
+            timestamp,
+            read: false,
+            hasChanged: true // Es nuevo, marcarlo como cambio
+          };
+
+          // Agregar al inicio
+          updatedList.unshift(newNotification);
+        }
       });
 
-      if (existingIndex !== -1) {
-        const updatedNotifications = [...prev];
-        const existingNotification = updatedNotifications[existingIndex];
-        
-        const updatedNotification = {
-          ...existingNotification,
-          timestamp: newNotification.timestamp,
-          products: newNotification.products,
-          read: false
-        };
-        
-        updatedNotifications.splice(existingIndex, 1);
-        updatedNotifications.unshift(updatedNotification);
-        
-        return updatedNotifications;
-      } else {
-        return [newNotification, ...prev.slice(0, 49)];
-      }
+      // Limitar a 50 notificaciones
+      return updatedList.slice(0, 50);
     });
-  }, [generateMessageHash]);
+  }, []);
 
   const clearReconnectTimeout = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -114,16 +138,12 @@ export const useSSENotifications = (enabled: boolean = true) => {
           console.log('Mensaje SSE recibido:', event.data);
           const data = JSON.parse(event.data);
           
-          const notification: Notification = {
-            id: `${Date.now()}-${Math.random()}`,
-            type: 'stock-alert',
-            message: data.message || 'Alerta de stock bajo',
-            products: data.body?.response?.products || data.products || [],
-            timestamp: data.body?.response?.datetime || data.datetime || new Date().toISOString(),
-            read: false
-          };
+          const products = data.body?.response?.data || [];
+          const timestamp = data.body?.response?.datetime || new Date().toISOString();
 
-          addOrUpdateNotification(notification);
+          if (products.length > 0) {
+            processProductList(products, timestamp);
+          }
         } catch (err) {
           console.error('Error parsing notification:', err, event.data);
         }
@@ -134,17 +154,13 @@ export const useSSENotifications = (enabled: boolean = true) => {
           console.log('Evento stock-notification recibido:', event.data);
           const data = JSON.parse(event.data);
           
-          if (data.body?.event === 'alert-stock' || data.event === 'alert-stock') {
-            const notification: Notification = {
-              id: `${Date.now()}-${Math.random()}`,
-              type: 'stock-alert',
-              message: data.message || 'Alerta de stock bajo',
-              products: data.body?.response?.products || data.products || [],
-              timestamp: data.body?.response?.datetime || data.datetime || new Date().toISOString(),
-              read: false
-            };
+          if (data.body?.event === 'alert-stock') {
+            const products = data.body?.response?.data || [];
+            const timestamp = data.body?.response?.datetime || new Date().toISOString();
 
-            addOrUpdateNotification(notification);
+            if (products.length > 0) {
+              processProductList(products, timestamp);
+            }
           }
         } catch (err) {
           console.error('Error parsing stock-notification:', err);
@@ -185,7 +201,7 @@ export const useSSENotifications = (enabled: boolean = true) => {
         reconnectTimeoutRef.current = setTimeout(connect, reconnectDelayRef.current);
       }
     }
-  }, [enabled, addOrUpdateNotification, clearReconnectTimeout]);
+  }, [enabled, processProductList, clearReconnectTimeout]);
 
   const reconnect = useCallback(() => {
     reconnectAttemptsRef.current = 0;
@@ -228,7 +244,7 @@ export const useSSENotifications = (enabled: boolean = true) => {
 
   const markAsRead = useCallback((id: string) => {
     setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
+      prev.map(n => n.id === id ? { ...n, read: true, hasChanged: false } : n)
     );
   }, []);
 
@@ -249,7 +265,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
     clearAll,
     reconnect,
     unreadCount: notifications.filter(n => !n.read).length,
-    lowStockProducts: notifications.flatMap(n => n.products),
     reconnectAttempts: reconnectAttemptsRef.current
   };
 };
