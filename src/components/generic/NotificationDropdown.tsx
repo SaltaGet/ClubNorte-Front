@@ -40,25 +40,25 @@ const NotificationDropdown = () => {
         <Button
           variant="outline"
           size="sm"
-          className="bg-slate-700 border-slate-500 hover:bg-slate-600 text-white relative"
+          className="bg-slate-800 border-slate-600 hover:bg-slate-700 text-white relative h-9 px-3 shadow-sm transition-colors"
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {unreadCount > 0 ? (
               <BellRing size={18} className="text-yellow-400" />
             ) : (
-              <Bell size={18} />
+              <Bell size={18} className="text-slate-300" />
             )}
             
             {isConnected ? (
-              <Wifi size={12} className="text-green-400" />
+              <Wifi size={14} className="text-green-400" />
             ) : (
-              <WifiOff size={12} className="text-red-400" />
+              <WifiOff size={14} className="text-red-400" />
             )}
           </div>
           
           {unreadCount > 0 && (
             <Badge 
-              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs"
+              className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] flex items-center justify-center px-1 bg-red-600 hover:bg-red-600 text-white text-[10px] font-semibold border-2 border-slate-900"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
@@ -66,31 +66,31 @@ const NotificationDropdown = () => {
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-[95vw] sm:w-96 max-w-md bg-slate-800 border-slate-600">
-        <DropdownMenuLabel className="text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sticky top-0 bg-slate-800 z-10 pb-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm sm:text-base">Stock Bajo</span>
+      <DropdownMenuContent className="w-[95vw] sm:w-96 max-w-md bg-slate-800 border-slate-600 shadow-xl" align="end">
+        <DropdownMenuLabel className="text-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sticky top-0 bg-slate-800 z-10 pb-3 pt-3 border-b border-slate-700">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base font-semibold">Alertas de Stock</span>
             {isConnected ? (
-              <Badge className="bg-green-600 text-white text-[10px] sm:text-xs px-2 py-0.5">
-                Conectado
+              <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30 text-xs px-2 py-0.5 font-medium">
+                En línea
               </Badge>
             ) : (
-              <Badge className="bg-red-600 text-white text-[10px] sm:text-xs px-2 py-0.5">
+              <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30 text-xs px-2 py-0.5 font-medium">
                 Desconectado
               </Badge>
             )}
           </div>
           
-          <div className="flex items-center gap-1 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
             {!isConnected && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={reconnect}
-                className="text-xs text-slate-400 hover:text-white h-auto p-1.5 sm:p-1 touch-manipulation"
+                className="text-slate-400 hover:text-white hover:bg-slate-700 h-8 px-2 transition-colors"
                 title="Reconectar"
               >
-                <RefreshCw size={16} className="sm:w-3.5 sm:h-3.5" />
+                <RefreshCw size={16} />
               </Button>
             )}
             
@@ -99,27 +99,32 @@ const NotificationDropdown = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAll}
-                className="text-xs text-slate-400 hover:text-white h-auto px-2 py-1.5 sm:p-1 touch-manipulation"
+                className="text-slate-400 hover:text-white hover:bg-slate-700 h-8 px-3 text-xs transition-colors"
               >
-                Limpiar
+                Limpiar todo
               </Button>
             )}
           </div>
         </DropdownMenuLabel>
         
-        <DropdownMenuSeparator className="bg-slate-600" />
+        <DropdownMenuSeparator className="bg-slate-700" />
         
         {error && (
-          <div className="p-3 mx-2 mb-2 bg-red-900/50 border border-red-700 rounded-lg">
-            <p className="text-xs text-red-200">{error}</p>
+          <div className="p-3 mx-2 mb-2 bg-red-500/10 border border-red-500/30 rounded-md">
+            <p className="text-xs text-red-300">{error}</p>
           </div>
         )}
         
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-slate-400 text-sm">
-            <div className="flex flex-col items-center gap-2">
-              <Bell size={32} className="text-slate-500" />
-              <span>No hay alertas de stock</span>
+          <div className="p-8 text-center text-slate-400">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center">
+                <Bell size={28} className="text-slate-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-300">Sin alertas</p>
+                <p className="text-xs text-slate-500 mt-1">No hay productos con stock bajo</p>
+              </div>
             </div>
           </div>
         ) : (
@@ -129,64 +134,62 @@ const NotificationDropdown = () => {
                 <div
                   key={notification.id}
                   className={`
-                    p-3 rounded-lg transition-all relative group
+                    p-3.5 rounded-lg transition-all relative group border
                     ${notification.read 
-                      ? 'bg-slate-700/50 hover:bg-slate-700' 
-                      : 'bg-slate-700 hover:bg-slate-600 border-l-2 border-red-500'
+                      ? 'bg-slate-700/30 hover:bg-slate-700/50 border-slate-700' 
+                      : 'bg-slate-700/60 hover:bg-slate-700/80 border-red-500/30 shadow-sm'
                     }
-                    ${notification.hasChanged && !notification.read ? 'animate-pulse' : ''}
                   `}
                 >
-                  {/* Botón X para eliminar */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       removeNotification(notification.id);
                     }}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-600 hover:bg-red-600 rounded-full p-1"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-600/80 hover:bg-red-600 rounded-full p-1 shadow-sm"
                     title="Eliminar notificación"
                   >
-                    <X size={14} className="text-white" />
+                    <X size={12} className="text-white" />
                   </button>
 
                   <div 
                     onClick={() => markAsRead(notification.id)}
                     className="cursor-pointer"
                   >
-                    <div className="flex justify-between items-start mb-2 pr-6">
+                    <div className="flex justify-between items-start mb-2.5 pr-7">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-400 font-medium">
                           {formatTimeAgo(notification.timestamp)}
                         </span>
                         {notification.hasChanged && !notification.read && (
-                          <Badge className="bg-orange-500 text-white text-[10px] px-1.5 py-0 flex items-center gap-1">
+                          <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] px-1.5 py-0 flex items-center gap-1">
                             <TrendingDown size={10} />
                             CAMBIÓ
                           </Badge>
                         )}
                       </div>
                       {!notification.read && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-red-500 rounded-full shadow-sm shadow-red-500/50"></div>
                       )}
                     </div>
                     
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-200">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-100 truncate">
                           {notification.name}
                         </p>
-                        <p className="text-xs text-slate-400">
-                          Código: {notification.code}
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Código: <span className="font-mono">{notification.code}</span>
                         </p>
                       </div>
                       
-                      <div className="flex flex-col items-end gap-1">
-  <Badge className="bg-red-500 text-white text-xs sm:text-sm px-2 py-1">
-    <span className="opacity-90">Depósito:</span>
-    <span className="text-base sm:text-lg font-bold mx-1">{notification.stock}</span>
-    <span className="opacity-90">unid.</span>
-  </Badge>
-</div>
+                      <div className="flex flex-col items-end flex-shrink-0">
+                        <Badge className="bg-red-500/90 hover:bg-red-500/90 text-white text-xs whitespace-nowrap px-2.5 py-1 shadow-sm">
+                          <span className="font-bold text-base">{notification.stock}</span>
+                          <span className="ml-1 opacity-90">unid.</span>
+                        </Badge>
+                        <span className="text-[10px] text-slate-500 mt-1">en depósito</span>
+                      </div>
                     </div>
                   </div>
                 </div>
