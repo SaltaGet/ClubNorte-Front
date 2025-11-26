@@ -61,7 +61,7 @@ const BulkMovementTableComponent = ({
   return (
     <>
      {/* Vista Cards para móvil y tablet (< lg) */}
-      <div className="lg:hidden space-y-4">
+      <div className="space-y-4">
         {products.map((product) => {
           const movements = productMovements[product.id] || {};
           const depositStock = getDepositStock(product);

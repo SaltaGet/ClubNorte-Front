@@ -27,7 +27,6 @@ export const useSSENotifications = (enabled: boolean = true) => {
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 10;
   const reconnectDelayRef = useRef(1000);
-  const intentionalCloseRef = useRef(false);
 
   // Función para generar un hash único del contenido del mensaje
   const generateMessageHash = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -86,228 +85,161 @@ export const useSSENotifications = (enabled: boolean = true) => {
     }
   }, []);
 
-  // Función de conexión mejorada con cache busting
+  // Función de conexión mejorada
   const connect = useCallback(() => {
-    if (!enabled) {
-      console.log('🔴 SSE: Conexión deshabilitada (enabled=false)');
-      return;
-    }
+    if (!enabled) return;
 
     // Limpiar conexión anterior si existe
     if (eventSourceRef.current) {
-      console.log('🔄 SSE: Cerrando conexión anterior antes de reconectar');
-      intentionalCloseRef.current = true;
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
 
-    // Limpiar timeout anterior
     clearReconnectTimeout();
 
-    // Agregar timestamp para evitar cache y simular no-cache
-    const baseUrl = `${import.meta.env.VITE_API_URL}api/v1/notification/alert`;
-    const sseUrl = `${baseUrl}?t=${Date.now()}&nocache=true`;
+    // URL sin parámetros extra (alexandrevicenzi/go-sse no necesita cache busting)
+    const sseUrl = `${import.meta.env.VITE_API_URL}api/v1/notification/alert`;
 
     try {
-      console.log(`🔵 SSE: Intentando conectar (intento ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`);
-      console.log(`📡 SSE: URL: ${sseUrl}`);
-      
+      console.log(`Intentando conectar SSE (intento ${reconnectAttemptsRef.current + 1})...`);
       const eventSource = new EventSource(sseUrl, { 
         withCredentials: true 
       });
       eventSourceRef.current = eventSource;
-      intentionalCloseRef.current = false;
 
-      console.log(`⏳ SSE: Estado inicial: ${eventSource.readyState} (0=CONNECTING, 1=OPEN, 2=CLOSED)`);
-
-      // Timeout para detectar si la conexión no se establece
       const connectionTimeout = setTimeout(() => {
         if (eventSource.readyState !== EventSource.OPEN) {
-          console.log('⏰ SSE: Timeout de conexión (10s) - La conexión no se estableció');
-          console.log(`📊 SSE: Estado al timeout: ${eventSource.readyState}`);
+          console.log('Timeout de conexión SSE');
           eventSource.close();
         }
       }, 10000);
 
       eventSource.onopen = () => {
-        console.log('✅ SSE: Conexión establecida exitosamente');
-        console.log(`📊 SSE: Estado: ${eventSource.readyState} (OPEN)`);
+        console.log('SSE conectado exitosamente');
         clearTimeout(connectionTimeout);
         setIsConnected(true);
         setError(null);
         
-        // Resetear contador de intentos y delay
         reconnectAttemptsRef.current = 0;
         reconnectDelayRef.current = 1000;
-        console.log('🔄 SSE: Contador de reintentos reseteado');
       };
 
-      eventSource.addEventListener('stock-notification', (event) => {
-        console.log('📨 SSE: Mensaje recibido (stock-notification)');
-        console.log('📦 SSE: Datos:', event.data);
-        
+      // alexandrevicenzi/go-sse usa 'message' como evento por defecto
+      // pero también puedes escuchar eventos personalizados
+      eventSource.onmessage = (event) => {
         try {
+          console.log('Mensaje SSE recibido:', event.data);
           const data = JSON.parse(event.data);
           
-          if (data.body?.event === 'alert-stock') {
-            console.log('🔔 SSE: Alerta de stock detectada');
-            console.log('📋 SSE: Productos con stock bajo:', data.body.response?.products?.length || 0);
-            
+          // Adaptar según la estructura que envía tu servidor Go
+          const notification: Notification = {
+            id: `${Date.now()}-${Math.random()}`,
+            type: 'stock-alert',
+            message: data.message || 'Alerta de stock bajo',
+            products: data.body?.response?.products || data.products || [],
+            timestamp: data.body?.response?.datetime || data.datetime || new Date().toISOString(),
+            read: false
+          };
+
+          addOrUpdateNotification(notification);
+        } catch (err) {
+          console.error('Error parsing notification:', err, event.data);
+        }
+      };
+
+      // También escuchar eventos con nombre específico (si tu servidor los envía)
+      eventSource.addEventListener('stock-notification', (event) => {
+        try {
+          console.log('Evento stock-notification recibido:', event.data);
+          const data = JSON.parse(event.data);
+          
+          if (data.body?.event === 'alert-stock' || data.event === 'alert-stock') {
             const notification: Notification = {
               id: `${Date.now()}-${Math.random()}`,
               type: 'stock-alert',
               message: data.message || 'Alerta de stock bajo',
-              products: data.body.response?.products || [],
-              timestamp: data.body.response?.datetime || new Date().toISOString(),
+              products: data.body?.response?.products || data.products || [],
+              timestamp: data.body?.response?.datetime || data.datetime || new Date().toISOString(),
               read: false
             };
 
             addOrUpdateNotification(notification);
           }
         } catch (err) {
-          console.error('❌ SSE: Error parseando notificación:', err);
+          console.error('Error parsing stock-notification:', err);
         }
       });
 
       eventSource.onerror = (error) => {
-        const wasIntentional = intentionalCloseRef.current;
-        const currentState = eventSource.readyState;
-        
-        console.group('🔴 SSE: Error en conexión');
-        console.log('📊 Estado de readyState:', currentState, 
-          currentState === 0 ? '(CONNECTING)' : 
-          currentState === 1 ? '(OPEN)' : 
-          '(CLOSED)');
-        console.log('🎯 Cierre intencional:', wasIntentional);
-        console.log('🔢 Intento actual:', reconnectAttemptsRef.current);
-        console.log('📍 Objeto error:', error);
-        
-        // Detectar razones específicas del cierre
-        if (currentState === EventSource.CLOSED) {
-          if (wasIntentional) {
-            console.log('ℹ️ Razón: Cierre intencional (reconexión programada)');
-          } else {
-            console.log('⚠️ Razón: Conexión cerrada por el servidor o red');
-            console.log('   Posibles causas:');
-            console.log('   - Servidor cerró la conexión');
-            console.log('   - Timeout de red');
-            console.log('   - Error HTTP (401, 403, 500, etc.)');
-            console.log('   - Problema de CORS');
-          }
-        } else if (currentState === EventSource.CONNECTING) {
-          console.log('⚠️ Razón: Error durante la conexión inicial');
-          console.log('   Posibles causas:');
-          console.log('   - Servidor no responde');
-          console.log('   - URL incorrecta');
-          console.log('   - Problema de red');
-        }
-        
-        console.groupEnd();
-        
+        console.log('Error en conexión SSE:', error);
         clearTimeout(connectionTimeout);
         setIsConnected(false);
         
-        // Cerrar la conexión actual
         eventSource.close();
         eventSourceRef.current = null;
 
-        // Solo intentar reconectar si no fue intencional y no hemos excedido el máximo
-        if (!wasIntentional && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
           
           const currentDelay = Math.min(reconnectDelayRef.current, 30000);
-          const message = `Conexión perdida. Reintentando en ${Math.round(currentDelay / 1000)}s... (${reconnectAttemptsRef.current}/${maxReconnectAttempts})`;
-          setError(message);
-          
-          console.log(`⏰ SSE: ${message}`);
+          setError(`Conexión perdida. Reintentando en ${Math.round(currentDelay / 1000)}s... (${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(`🔄 SSE: Ejecutando reconexión programada...`);
+            console.log(`Reintentando conexión SSE (${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`);
             connect();
           }, currentDelay);
           
-          // Incrementar el delay para el próximo intento (backoff exponencial)
           reconnectDelayRef.current = Math.min(currentDelay * 1.5, 30000);
-        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          const errorMsg = `No se pudo restablecer la conexión después de ${maxReconnectAttempts} intentos`;
-          setError(errorMsg);
-          console.error(`❌ SSE: ${errorMsg}`);
+        } else {
+          setError(`No se pudo restablecer la conexión después de ${maxReconnectAttempts} intentos`);
+          console.error('Máximo de intentos de reconexión alcanzado');
         }
-        
-        intentionalCloseRef.current = false;
       };
 
     } catch (err) {
-      console.error('❌ SSE: Error crítico al inicializar conexión:', err);
       setError('Error al inicializar conexión');
+      console.error('Error al conectar:', err);
       
-      // Intentar reconectar si no hemos alcanzado el máximo
       if (reconnectAttemptsRef.current < maxReconnectAttempts) {
         reconnectAttemptsRef.current++;
-        console.log(`⏰ SSE: Programando reintento en ${reconnectDelayRef.current}ms`);
         reconnectTimeoutRef.current = setTimeout(connect, reconnectDelayRef.current);
       }
     }
   }, [enabled, addOrUpdateNotification, clearReconnectTimeout]);
 
-  // Función para reconectar manualmente
   const reconnect = useCallback(() => {
-    console.log('🔄 SSE: Reconexión manual solicitada');
     reconnectAttemptsRef.current = 0;
     reconnectDelayRef.current = 1000;
     connect();
   }, [connect]);
 
-  // Efecto principal
   useEffect(() => {
-    console.log('🚀 SSE: Hook inicializado, enabled:', enabled);
     connect();
 
-    // Manejar cambios de visibilidad de la página
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('👁️ SSE: Página visible');
-        // Verificar si la conexión está cerrada cuando la página vuelve a ser visible
         if (!eventSourceRef.current || eventSourceRef.current.readyState === EventSource.CLOSED) {
-          console.log('🔄 SSE: Conexión cerrada detectada al volver a la página, reconectando...');
+          console.log('Página visible y conexión cerrada, reconectando...');
           reconnect();
-        } else {
-          console.log('✅ SSE: Conexión activa, no se requiere reconexión');
         }
-      } else {
-        console.log('👁️ SSE: Página oculta');
       }
     };
 
-    // Verificación periódica del estado de la conexión
     const healthCheck = setInterval(() => {
-      if (enabled) {
-        const state = eventSourceRef.current?.readyState;
-        console.log(`💓 SSE: Health check - Estado: ${state} (${
-          state === 0 ? 'CONNECTING' : 
-          state === 1 ? 'OPEN' : 
-          state === 2 ? 'CLOSED' : 
-          'NO_CONNECTION'
-        })`);
-        
-        if (!eventSourceRef.current || state === EventSource.CLOSED) {
-          console.log('⚠️ SSE: Health check detectó conexión cerrada, reconectando...');
-          reconnect();
-        }
+      if (enabled && (!eventSourceRef.current || eventSourceRef.current.readyState === EventSource.CLOSED)) {
+        console.log('Health check: conexión cerrada, intentando reconectar...');
+        reconnect();
       }
     }, 30000);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      console.log('🧹 SSE: Limpiando hook (desmontaje o dependencias cambiaron)');
       clearInterval(healthCheck);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearReconnectTimeout();
       
       if (eventSourceRef.current) {
-        console.log('🔴 SSE: Cerrando conexión (cleanup)');
-        intentionalCloseRef.current = true;
         eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
