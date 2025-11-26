@@ -1,23 +1,10 @@
-import { useState, useEffect } from 'react';
 import { useGetExistOpenRegister } from '@/hooks/admin/Register/useGetExistOpenRegister';
 import FormCreateIncome from './FormCreateIncome';
 import TableProductPointSale from '../ProductPoinSale/TableProductPointSale';
 
 const IncomeCreate = () => {
   const { existOpen, isLoading, error } = useGetExistOpenRegister();
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar si es móvil
-  useEffect(() => {
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
-    };
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
-  }, []);
-
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -29,7 +16,6 @@ const IncomeCreate = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -59,7 +45,6 @@ const IncomeCreate = () => {
     );
   }
 
-  // Register closed - Show message to open register
   if (!existOpen) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4 sm:p-6">
@@ -93,46 +78,26 @@ const IncomeCreate = () => {
     );
   }
 
-  // Register open - Show form with responsive layout
+  // Register open - Layout vertical: Formulario arriba, tabla abajo
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Mobile: Stack vertical */}
-      {isMobile ? (
-        <div className="flex flex-col">
-          {/* Formulario arriba */}
-          <div className="w-full">
-            <FormCreateIncome />
-          </div>
-          
-          {/* Tabla abajo */}
-          <div className="w-full p-3 sm:p-4">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl shadow-xl">
-              <TableProductPointSale />
+      <div className="p-3 sm:p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col gap-4 lg:gap-6">
+            {/* Formulario arriba */}
+            <div className="w-full">
+              <FormCreateIncome />
             </div>
-          </div>
-        </div>
-      ) : (
-        /* Desktop: Grid de 2 columnas */
-        <div className="p-6">
-          <div className="max-w-[1800px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Formulario a la izquierda */}
-              <div className="lg:col-span-1">
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl h-full">
-                  <FormCreateIncome />
-                </div>
-              </div>
-              
-              {/* Tabla a la derecha */}
-              <div className="lg:col-span-1">
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl h-full overflow-hidden">
-                  <TableProductPointSale />
-                </div>
+            
+            {/* Tabla abajo */}
+            <div className="w-full">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl shadow-2xl">
+                <TableProductPointSale />
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
