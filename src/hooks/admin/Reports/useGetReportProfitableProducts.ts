@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getApiError } from "@/utils/apiError";
 import type { ProductSummary } from "./ReportsType";
 
-import MKPorfitableProducts from "@/mockup/Report2.json"
+//import MKPorfitableProducts from "@/mockup/Report2.json"
 
 // Tipo genérico para manejar la respuesta de la API
 export interface ApiSuccessResponse<T> {
@@ -47,8 +47,8 @@ export const useGetReportProfitableProducts = (
 
   return {
     productsData: {
-      //products: data?.body ?? [], // Ahora body ES el array
-      products: MKPorfitableProducts ?? [], // Ahora body ES el array
+      products: data?.body ?? [], // Ahora body ES el array
+      //products: MKPorfitableProducts ?? [], // Ahora body ES el array
     },
     isLoading,
     isError,

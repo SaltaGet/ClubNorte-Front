@@ -288,7 +288,7 @@ const EditDeleteProduct: React.FC<EditDeleteProductProps> = ({ id, onClose }) =>
                     thousandSeparator="."
                     decimalSeparator=","
                     prefix="$"
-                    decimalScale={2}
+                    decimalScale={0}
                     fixedDecimalScale={true}
                     allowNegative={false}
                     className={inputClass}

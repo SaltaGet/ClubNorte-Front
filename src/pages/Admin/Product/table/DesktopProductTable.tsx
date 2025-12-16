@@ -110,7 +110,7 @@ const DesktopProductTable = ({
         header: "Precio",
         cell: (info) => (
           <span className="text-emerald-500 font-medium">
-            ${info.getValue().toFixed(2)}
+            ${info.getValue().toFixed(0)}
           </span>
         ),
       }),

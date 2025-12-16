@@ -158,7 +158,7 @@ const TableProduct = () => {
       header: "Precio",
       cell: (info) => (
         <span className="text-emerald-500 font-medium">
-          ${info.getValue().toFixed(2)}
+          ${info.getValue().toFixed(0)}
         </span>
       ),
     }),
@@ -435,7 +435,7 @@ const TableProduct = () => {
 
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-emerald-500 font-bold text-xl">
-                      ${product.price.toFixed(2)}
+                      ${product.price.toFixed(0)}
                     </span>
                   </div>
 
