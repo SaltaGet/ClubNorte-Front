@@ -2,7 +2,7 @@ import apiClubNorte from "@/api/apiClubNorte";
 import { useQuery } from "@tanstack/react-query";
 import { getApiError } from "@/utils/apiError";
 
-import MKDay from "@/mockup/Report1Day.json";
+//import MKDay from "@/mockup/Report1Day.json";
 
 // ============================================
 // TYPES
@@ -76,8 +76,8 @@ export const useGetDayReport = (params: GetDayReportParams) => {
   const apiError = getApiError(error);
 
   return {
-    //dayReportData: data?.body ?? ([] as DayReportBody),
-    dayReportData: MKDay ?? ([] as DayReportBody),
+    dayReportData: data?.body ?? ([] as DayReportBody),
+    //dayReportData: MKDay ?? ([] as DayReportBody),
     isLoading,
     isError,
     error: apiError,
